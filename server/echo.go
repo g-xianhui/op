@@ -5,13 +5,13 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
-const MQECHO = 1
-
 func echo(agent *Agent, p proto.Message) {
 	req := p.(*pb.MQEcho)
-	log("echo %s", req.GetData())
+	rep := &pb.MREcho{}
+	rep.Data = proto.String(req.GetData())
+	replyMsg(agent, pb.MRECHO, rep)
 }
 
 func init() {
-	registerHandler(MQECHO, &pb.MQEcho{}, echo)
+	registerHandler(pb.MQECHO, &pb.MQEcho{}, echo)
 }

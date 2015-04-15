@@ -7,13 +7,18 @@ import (
 	"runtime"
 )
 
-func log(format string, args ...interface{}) {
+const (
+	_ = iota
+	DEBUG
+	ERROR
+)
+
+func log(level int, format string, args ...interface{}) {
 	fmt.Printf(format, args...)
-	fmt.Println()
 }
 
 func handleClient(conn net.Conn) {
-	log("new client[%s:%s]", conn.RemoteAddr(), conn.LocalAddr())
+	log(DEBUG, "new client[%s:%s]\n", conn.RemoteAddr(), conn.LocalAddr())
 	agent := createAgent(conn)
 	go agentProcess(agent)
 }
@@ -31,7 +36,7 @@ func main() {
 	for {
 		conn, err := l.Accept()
 		if err != nil {
-			log("Accept error: %s", err)
+			log(ERROR, "Accept error: %s\n", err)
 			continue
 		}
 		go handleClient(conn)

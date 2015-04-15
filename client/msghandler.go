@@ -22,12 +22,6 @@ func registerHandler(t uint32, p proto.Message, cb msgCB) {
 
 func dispatchOutsideMsg(agent *Agent, m *msg) {
 	log(DEBUG, "dispatchOutsideMsg\n")
-	if m.session != agent.session+1 {
-		log(ERROR, "session not equal, cli[%d], svr[%d]\n", m.session, agent.session+1)
-		return
-	}
-	agent.session++
-
 	h, ok := handlers[m.t]
 	if ok != true {
 		log(ERROR, "msg[%d] handler not found\n", m.t)
@@ -40,17 +34,4 @@ func dispatchOutsideMsg(agent *Agent, m *msg) {
 	}
 
 	h.cb(agent, h.p)
-}
-
-func replyMsg(agent *Agent, t uint32, p proto.Message) {
-	data, err := proto.Marshal(p)
-	if err != nil {
-		log(ERROR, "proto[%d] marshal failed: %s", err)
-		return
-	}
-	m := &msg{t, agent.session, data}
-	send(agent, m)
-}
-
-func dispatchInnerMsg(agent *Agent, msg interface{}) {
 }

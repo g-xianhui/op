@@ -1,12 +1,12 @@
 package main
 
 import (
-	"github.com/golang/protobuf/proto"
 	"net"
 )
 
 type Agent struct {
-	conn net.Conn
+	conn    net.Conn
+	session uint32
 	// net msg
 	outside chan *msg
 	// msg from framework
@@ -14,7 +14,7 @@ type Agent struct {
 }
 
 func createAgent(conn net.Conn) *Agent {
-	log("createAgent")
+	log(DEBUG, "createAgent\n")
 	agent := &Agent{conn: conn}
 	agent.outside = make(chan *msg)
 	agent.inner = make(chan interface{})
@@ -22,8 +22,8 @@ func createAgent(conn net.Conn) *Agent {
 }
 
 func agentProcess(agent *Agent) {
-	log("agentProcess")
-	go netio(agent)
+	log(DEBUG, "agentProcess\n")
+	go recv(agent)
 	// TODO maybe try to break this deadloop
 	for {
 		select {
@@ -33,23 +33,4 @@ func agentProcess(agent *Agent) {
 			dispatchInnerMsg(agent, m)
 		}
 	}
-}
-
-func dispatchOutsideMsg(agent *Agent, m *msg) {
-	log("dispatchOutsideMsg")
-	h, ok := handlers[m.t]
-	if ok != true {
-		log("msg[%d] handler not found", m.t)
-		return
-	}
-
-	if err := proto.Unmarshal(m.data, h.p); err != nil {
-		log("msg[%d] Unmarshal failed: %s", m.t, err)
-		return
-	}
-
-	h.cb(agent, h.p)
-}
-
-func dispatchInnerMsg(agent *Agent, msg interface{}) {
 }
