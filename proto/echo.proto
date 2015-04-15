@@ -1,0 +1,11 @@
+syntax = "proto2";
+
+package pb;
+
+message MQEcho {
+    required string data = 1;
+};
+
+message MREcho {
+    required string data = 1;
+};
