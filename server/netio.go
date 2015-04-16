@@ -63,23 +63,6 @@ func sendPack(conn io.Writer, pack []byte) error {
 	return nil
 }
 
-func packMsg(m *msg) []byte {
-	l := len(m.data) + 8
-	pack := make([]byte, l)
-	binary.BigEndian.PutUint32(pack, m.t)
-	binary.BigEndian.PutUint32(pack[4:], m.session)
-	copy(pack[8:], m.data)
-	return pack
-}
-
-func unpackMsg(pack []byte) *msg {
-	m := &msg{}
-	m.t = binary.BigEndian.Uint32(pack[:4])
-	m.session = binary.BigEndian.Uint32(pack[4:8])
-	m.data = pack[8:]
-	return m
-}
-
 func recv(agent *Agent) {
 	last := &cacheBuf{}
 	last.buf = make([]byte, MAX_CLIENT_BUF)

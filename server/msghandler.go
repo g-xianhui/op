@@ -1,11 +1,31 @@
 package main
 
-import "github.com/golang/protobuf/proto"
+import (
+	"encoding/binary"
+	"github.com/golang/protobuf/proto"
+)
 
 type msg struct {
 	t       uint32
 	session uint32
 	data    []byte
+}
+
+func packMsg(m *msg) []byte {
+	l := len(m.data) + 8
+	pack := make([]byte, l)
+	binary.BigEndian.PutUint32(pack, m.t)
+	binary.BigEndian.PutUint32(pack[4:], m.session)
+	copy(pack[8:], m.data)
+	return pack
+}
+
+func unpackMsg(pack []byte) *msg {
+	m := &msg{}
+	m.t = binary.BigEndian.Uint32(pack[:4])
+	m.session = binary.BigEndian.Uint32(pack[4:8])
+	m.data = pack[8:]
+	return m
 }
 
 type msgCB func(*Agent, proto.Message)
