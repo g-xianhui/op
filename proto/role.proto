@@ -1,0 +1,15 @@
+syntax = "proto2";
+package pb;
+import "datatype.proto";
+
+message MRRoleBasic {
+    required RoleBasic basic = 1;
+}
+
+message MRTasklist {
+    repeated Task tasklist = 2;
+}
+
+message MRItemlist {
+    repeated Item itemlist = 3;
+}

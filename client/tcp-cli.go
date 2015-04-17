@@ -82,6 +82,13 @@ func echocb(agent *Agent, data proto.Message) {
 	log(DEBUG, "%s", rep.GetData())
 }
 
+func roleload(agent *Agent, data proto.Message) {
+	rep := data.(*pb.MRRoleBasic)
+	info := rep.GetBasic()
+	log(DEBUG, "roleid[%d], name[%s]\n", info.GetId(), info.GetName())
+}
+
 func init() {
 	registerHandler(pb.MRECHO, &pb.MREcho{}, echocb)
+	registerHandler(pb.MRROLEBASIC, &pb.MRRoleBasic{}, roleload)
 }

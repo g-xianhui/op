@@ -4,4 +4,6 @@ const (
 	_ = iota
 	MQECHO
 	MRECHO
+
+	MRROLEBASIC
 )

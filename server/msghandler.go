@@ -65,7 +65,7 @@ func dispatchOutsideMsg(agent *Agent, m *msg) {
 func replyMsg(agent *Agent, t uint32, p proto.Message) {
 	data, err := proto.Marshal(p)
 	if err != nil {
-		log(ERROR, "proto[%d] marshal failed: %s", err)
+		log(ERROR, "proto[%d] marshal failed: %s\n", t, err)
 		return
 	}
 	m := &msg{t, agent.session, data}

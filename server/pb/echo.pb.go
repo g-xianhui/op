@@ -2,16 +2,6 @@
 // source: echo.proto
 // DO NOT EDIT!
 
-/*
-Package pb is a generated protocol buffer package.
-
-It is generated from these files:
-	echo.proto
-
-It has these top-level messages:
-	MQEcho
-	MREcho
-*/
 package pb
 
 import proto "github.com/golang/protobuf/proto"
