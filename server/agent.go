@@ -17,14 +17,26 @@ type Agent struct {
 	*pb.Role
 }
 
+func (agent *Agent) GetId() uint32 {
+	return agent.Role.GetBasic().GetId()
+}
+
 func createAgent(conn net.Conn, accountName string, session uint32) (agent *Agent, err error) {
 	log(DEBUG, "createAgent[%s]\n", accountName)
-	agent = &Agent{conn: conn, accountName: accountName, session: session}
-	agent.outside = make(chan *msg)
-	agent.inner = make(chan interface{})
-	if agent.Role == nil {
+	agent = agentcenter.findByAccount(accountName)
+	if agent == nil {
+		log(DEBUG, "agent[%s] not found, try load from database\n", accountName)
+		agent = &Agent{accountName: accountName}
+		agent.inner = make(chan interface{})
+		agent.outside = make(chan *msg)
 		agent.Role, err = loadAll(accountName)
+		if err != nil {
+			return
+		}
+		agentcenter.add(accountName, agent.GetId(), agent)
 	}
+	agent.conn = conn
+	agent.session = session
 	return
 }
 

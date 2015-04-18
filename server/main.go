@@ -34,6 +34,7 @@ func handleClient(conn net.Conn) {
 
 // database handler
 var db *sql.DB
+var agentcenter *AgentCenter
 
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
@@ -46,6 +47,9 @@ func main() {
 		os.Exit(1)
 	}
 	defer db.Close()
+
+	agentcenter = &AgentCenter{}
+	agentcenter.init()
 
 	l, err := net.Listen("tcp", "localhost:1234")
 	if err != nil {

@@ -85,6 +85,6 @@ func recv(agent *Agent) {
 
 func send(agent *Agent, m *msg) {
 	if err := sendPack(agent.conn, packMsg(m)); err != nil {
-		log(ERROR, "proto[%d] send failed: %s", err)
+		log(ERROR, "proto[%d] send failed: %s", m.t, err)
 	}
 }
