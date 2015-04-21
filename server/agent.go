@@ -1,24 +1,28 @@
 package main
 
 import (
-	"github.com/g-xianhui/op/server/pb"
 	"net"
 )
 
 type Agent struct {
-	conn        net.Conn
-	accountName string
-	session     uint32
+	conn    net.Conn
+	session uint32
 	// net msg
 	outside chan *msg
 	// msg from framework
-	inner chan interface{}
-	// all user data
-	*pb.Role
+	inner    chan interface{}
+	account  *Account
+	rolelist []*RoleBasic
+	// cur role data, use pointer for later release
+	*Role
 }
 
-func (agent *Agent) GetId() uint32 {
-	return agent.Role.GetBasic().GetId()
+func (agent *Agent) getAccountId() uint32 {
+	return agent.account.id
+}
+
+func (agent *Agent) getRoleId() uint32 {
+	return agent.Role.id
 }
 
 func createAgent(conn net.Conn, accountName string, session uint32) (agent *Agent, err error) {
@@ -26,14 +30,14 @@ func createAgent(conn net.Conn, accountName string, session uint32) (agent *Agen
 	agent = agentcenter.findByAccount(accountName)
 	if agent == nil {
 		log(DEBUG, "agent[%s] not found, try load from database\n", accountName)
-		agent = &Agent{accountName: accountName}
+		agent = &Agent{}
 		agent.inner = make(chan interface{})
 		agent.outside = make(chan *msg)
-		agent.Role, err = loadAll(accountName)
-		if err != nil {
+		if agent.account, err = loadAccount(accountName); err != nil {
 			return
 		}
-		agentcenter.add(accountName, agent.GetId(), agent)
+		agent.rolelist = loadRolelist(agent.getAccountId())
+		agentcenter.addByAccount(accountName, agent)
 	}
 	agent.conn = conn
 	agent.session = session
@@ -42,7 +46,7 @@ func createAgent(conn net.Conn, accountName string, session uint32) (agent *Agen
 
 func agentProcess(agent *Agent) {
 	log(DEBUG, "agentProcess\n")
-	replyRole(agent)
+	replyRolelist(agent)
 	go recv(agent)
 	// TODO maybe try to break this deadloop
 	for {

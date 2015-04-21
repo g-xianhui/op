@@ -2,6 +2,28 @@ syntax = "proto2";
 package pb;
 import "datatype.proto";
 
+message MRRolelist {
+    repeated RoleBasic rolelist = 1;
+}
+
+message MQLogin {
+    required uint32 roleid = 1;
+}
+
+message MRLogin {
+    required uint32 errno = 1;
+}
+
+message MQCreateRole {
+    required uint32 occ = 1;
+    required string name = 2;
+}
+
+message MRCreateRole {
+    required uint32 errno = 1;
+    optional RoleBasic basic = 2;
+}
+
 message MRRoleBasic {
     required RoleBasic basic = 1;
 }

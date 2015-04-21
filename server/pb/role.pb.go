@@ -11,6 +11,102 @@ import math "math"
 var _ = proto.Marshal
 var _ = math.Inf
 
+type MRRolelist struct {
+	Rolelist         []*RoleBasic `protobuf:"bytes,1,rep,name=rolelist" json:"rolelist,omitempty"`
+	XXX_unrecognized []byte       `json:"-"`
+}
+
+func (m *MRRolelist) Reset()         { *m = MRRolelist{} }
+func (m *MRRolelist) String() string { return proto.CompactTextString(m) }
+func (*MRRolelist) ProtoMessage()    {}
+
+func (m *MRRolelist) GetRolelist() []*RoleBasic {
+	if m != nil {
+		return m.Rolelist
+	}
+	return nil
+}
+
+type MQLogin struct {
+	Roleid           *uint32 `protobuf:"varint,1,req,name=roleid" json:"roleid,omitempty"`
+	XXX_unrecognized []byte  `json:"-"`
+}
+
+func (m *MQLogin) Reset()         { *m = MQLogin{} }
+func (m *MQLogin) String() string { return proto.CompactTextString(m) }
+func (*MQLogin) ProtoMessage()    {}
+
+func (m *MQLogin) GetRoleid() uint32 {
+	if m != nil && m.Roleid != nil {
+		return *m.Roleid
+	}
+	return 0
+}
+
+type MRLogin struct {
+	Errno            *uint32 `protobuf:"varint,1,req,name=errno" json:"errno,omitempty"`
+	XXX_unrecognized []byte  `json:"-"`
+}
+
+func (m *MRLogin) Reset()         { *m = MRLogin{} }
+func (m *MRLogin) String() string { return proto.CompactTextString(m) }
+func (*MRLogin) ProtoMessage()    {}
+
+func (m *MRLogin) GetErrno() uint32 {
+	if m != nil && m.Errno != nil {
+		return *m.Errno
+	}
+	return 0
+}
+
+type MQCreateRole struct {
+	Occ              *uint32 `protobuf:"varint,1,req,name=occ" json:"occ,omitempty"`
+	Name             *string `protobuf:"bytes,2,req,name=name" json:"name,omitempty"`
+	XXX_unrecognized []byte  `json:"-"`
+}
+
+func (m *MQCreateRole) Reset()         { *m = MQCreateRole{} }
+func (m *MQCreateRole) String() string { return proto.CompactTextString(m) }
+func (*MQCreateRole) ProtoMessage()    {}
+
+func (m *MQCreateRole) GetOcc() uint32 {
+	if m != nil && m.Occ != nil {
+		return *m.Occ
+	}
+	return 0
+}
+
+func (m *MQCreateRole) GetName() string {
+	if m != nil && m.Name != nil {
+		return *m.Name
+	}
+	return ""
+}
+
+type MRCreateRole struct {
+	Errno            *uint32    `protobuf:"varint,1,req,name=errno" json:"errno,omitempty"`
+	Basic            *RoleBasic `protobuf:"bytes,2,opt,name=basic" json:"basic,omitempty"`
+	XXX_unrecognized []byte     `json:"-"`
+}
+
+func (m *MRCreateRole) Reset()         { *m = MRCreateRole{} }
+func (m *MRCreateRole) String() string { return proto.CompactTextString(m) }
+func (*MRCreateRole) ProtoMessage()    {}
+
+func (m *MRCreateRole) GetErrno() uint32 {
+	if m != nil && m.Errno != nil {
+		return *m.Errno
+	}
+	return 0
+}
+
+func (m *MRCreateRole) GetBasic() *RoleBasic {
+	if m != nil {
+		return m.Basic
+	}
+	return nil
+}
+
 type MRRoleBasic struct {
 	Basic            *RoleBasic `protobuf:"bytes,1,req,name=basic" json:"basic,omitempty"`
 	XXX_unrecognized []byte     `json:"-"`

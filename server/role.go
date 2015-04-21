@@ -1,40 +1,74 @@
 package main
 
 import (
-	"database/sql"
 	"github.com/g-xianhui/op/server/pb"
-	_ "github.com/go-sql-driver/mysql"
 	"github.com/golang/protobuf/proto"
 )
 
-func newRole(roleid uint32) error {
-	_, err := db.Exec("insert into role(guid) values(?)", roleid)
-	return err
+func toRoleBasic(r *RoleBasic) *pb.RoleBasic {
+	b := &pb.RoleBasic{}
+	b.Id = proto.Uint32(r.id)
+	b.Occupation = proto.Uint32(r.occupation)
+	b.Level = proto.Uint32(r.level)
+	b.Name = proto.String(r.name)
+	return b
 }
 
-func loadBasic(roleid uint32) (basic *pb.RoleBasic, err error) {
-	basic = &pb.RoleBasic{}
-	basic.Id = proto.Uint32(roleid)
-
-	var occ uint32
-	var name string
-	err = db.QueryRow("SELECT occupation, name FROM role WHERE guid = ?", roleid).Scan(&occ, &name)
-	if err == sql.ErrNoRows {
-		log(DEBUG, "create new user: %d\n", roleid)
-		err = newRole(roleid)
+func replyRolelist(agent *Agent) {
+	rep := &pb.MRRolelist{}
+	for _, r := range agent.rolelist {
+		rep.Rolelist = append(rep.Rolelist, toRoleBasic(r))
 	}
+	replyMsg(agent, pb.MRROLELIST, rep)
+}
 
-	if err != nil {
+func findRole(agent *Agent, id uint32) int {
+	for i := range agent.rolelist {
+		if agent.rolelist[i].id == id {
+			return i
+		}
+	}
+	return -1
+}
+
+func setRole(agent *Agent, i int) {
+	if agent.Role != nil && agent.Role.index == i {
 		return
 	}
-
-	basic.Occupation = proto.Uint32(occ)
-	basic.Name = proto.String(name)
-	return
+	agent.Role = &Role{id: agent.rolelist[i].id, index: i}
+	agent.Role.load()
 }
 
-func replyRole(agent *Agent) {
-	rep := &pb.MRRoleBasic{}
-	rep.Basic = agent.GetBasic()
-	replyMsg(agent, pb.MRROLEBASIC, rep)
+func login(agent *Agent, id uint32) uint32 {
+	index := findRole(agent, id)
+	if index == -1 {
+		return ErrRoleNotFound
+	}
+	setRole(agent, index)
+	return 0
+}
+
+func createRole(agent *Agent, occ uint32, name string) (*RoleBasic, uint32) {
+	if len(agent.rolelist) >= 3 {
+		return nil, ErrRolelistFull
+	}
+	if !agentcenter.bookName(name) {
+		return nil, ErrNameAlreadyUsed
+	}
+	roleid, errno := dbCreateRole(occ, name)
+	if errno != 0 {
+		agentcenter.unbookName(name)
+		return nil, errno
+	} else {
+		agentcenter.confirmName(name, roleid)
+	}
+	newrole := &RoleBasic{id: roleid, occupation: occ, name: name}
+	agent.rolelist = append(agent.rolelist, newrole)
+	// if crash before save rolelist, this roleid will be waste, not a big deal though
+	idlist := make([]uint32, 3)
+	for i, r := range agent.rolelist {
+		idlist[i] = r.id
+	}
+	saveRolelist(agent.getAccountId(), idlist)
+	return newrole, 0
 }

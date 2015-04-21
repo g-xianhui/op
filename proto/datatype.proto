@@ -4,7 +4,8 @@ package pb;
 message RoleBasic {
     required uint32 id = 1;
     required uint32 occupation = 2;
-    required string name = 3;
+    required uint32 level = 3;
+    required string name = 4;
 }
 
 message Task {
@@ -18,10 +19,4 @@ message Item {
     required uint32 count = 3;
     required uint32 bag = 4;
     required uint32 index = 5;
-}
-
-message Role {
-    required RoleBasic basic = 1;
-    repeated Task tasklist = 2;
-    repeated Item itemlist = 3;
 }

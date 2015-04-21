@@ -10,9 +10,18 @@ create table `account`(
     key(`name`)
 )engine=innodb default character set=utf8 collate=utf8_general_ci;
 
+drop table if exists rolelist;
+create table `rolelist`(
+    `accountId` int unsigned not null comment '账号ID',
+    `role1` int unsigned not null comment '角色1ID',
+    `role2` int unsigned not null comment '角色2ID',
+    `role3` int unsigned not null comment '角色3ID',
+    primary key(`accountId`)
+)engine=innodb default character set=utf8 collate=utf8_general_ci;
+
 drop table if exists role;
 create table `role`(
-    `guid` int unsigned not null comment '角色ID',
+    `guid` int unsigned not null auto_increment comment '角色ID',
     `name` char(32) not null default ''  comment '玩家名字',
     `occupation` tinyint unsigned not null default 0 comment '职业',
     `level` smallint unsigned not null default 0 comment '等级',

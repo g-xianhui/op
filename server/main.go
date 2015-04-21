@@ -27,6 +27,7 @@ func handleClient(conn net.Conn) {
 	agent, err := createAgent(conn, accountName, session)
 	if err != nil {
 		log(ERROR, "createAgent[%s] failed: %s", accountName, err)
+		conn.Close()
 		return
 	}
 	go agentProcess(agent)

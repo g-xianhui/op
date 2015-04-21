@@ -14,7 +14,6 @@ It has these top-level messages:
 	RoleBasic
 	Task
 	Item
-	Role
 */
 package pb
 
@@ -28,7 +27,8 @@ var _ = math.Inf
 type RoleBasic struct {
 	Id               *uint32 `protobuf:"varint,1,req,name=id" json:"id,omitempty"`
 	Occupation       *uint32 `protobuf:"varint,2,req,name=occupation" json:"occupation,omitempty"`
-	Name             *string `protobuf:"bytes,3,req,name=name" json:"name,omitempty"`
+	Level            *uint32 `protobuf:"varint,3,req,name=level" json:"level,omitempty"`
+	Name             *string `protobuf:"bytes,4,req,name=name" json:"name,omitempty"`
 	XXX_unrecognized []byte  `json:"-"`
 }
 
@@ -46,6 +46,13 @@ func (m *RoleBasic) GetId() uint32 {
 func (m *RoleBasic) GetOccupation() uint32 {
 	if m != nil && m.Occupation != nil {
 		return *m.Occupation
+	}
+	return 0
+}
+
+func (m *RoleBasic) GetLevel() uint32 {
+	if m != nil && m.Level != nil {
+		return *m.Level
 	}
 	return 0
 }
@@ -127,38 +134,6 @@ func (m *Item) GetIndex() uint32 {
 		return *m.Index
 	}
 	return 0
-}
-
-type Role struct {
-	Basic            *RoleBasic `protobuf:"bytes,1,req,name=basic" json:"basic,omitempty"`
-	Tasklist         []*Task    `protobuf:"bytes,2,rep,name=tasklist" json:"tasklist,omitempty"`
-	Itemlist         []*Item    `protobuf:"bytes,3,rep,name=itemlist" json:"itemlist,omitempty"`
-	XXX_unrecognized []byte     `json:"-"`
-}
-
-func (m *Role) Reset()         { *m = Role{} }
-func (m *Role) String() string { return proto.CompactTextString(m) }
-func (*Role) ProtoMessage()    {}
-
-func (m *Role) GetBasic() *RoleBasic {
-	if m != nil {
-		return m.Basic
-	}
-	return nil
-}
-
-func (m *Role) GetTasklist() []*Task {
-	if m != nil {
-		return m.Tasklist
-	}
-	return nil
-}
-
-func (m *Role) GetItemlist() []*Item {
-	if m != nil {
-		return m.Itemlist
-	}
-	return nil
 }
 
 func init() {

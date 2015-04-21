@@ -41,7 +41,6 @@ func registerHandler(t uint32, p proto.Message, cb msgCB) {
 }
 
 func dispatchOutsideMsg(agent *Agent, m *msg) {
-	log(DEBUG, "dispatchOutsideMsg\n")
 	if m.session != agent.session+1 {
 		log(ERROR, "session not equal, cli[%d], svr[%d]\n", m.session, agent.session+1)
 		return
