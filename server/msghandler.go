@@ -21,6 +21,10 @@ func packMsg(m *msg) []byte {
 }
 
 func unpackMsg(pack []byte) *msg {
+	if len(pack) < 8 {
+		log(ERROR, "unpackMsg failed: uncomplete package\n")
+		return nil
+	}
 	m := &msg{}
 	m.t = binary.BigEndian.Uint32(pack[:4])
 	m.session = binary.BigEndian.Uint32(pack[4:8])

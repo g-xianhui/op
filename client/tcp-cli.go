@@ -22,6 +22,7 @@ type Agent struct {
 	conn net.Conn
 	// net msg
 	outside chan *msg
+	inner   chan string
 	session uint32
 }
 
@@ -29,6 +30,7 @@ func createAgent(conn net.Conn) *Agent {
 	log(DEBUG, "createAgent\n")
 	agent := &Agent{conn: conn}
 	agent.outside = make(chan *msg)
+	agent.inner = make(chan string)
 	return agent
 }
 
@@ -42,28 +44,16 @@ func main() {
 
 	agent := createAgent(conn)
 	go recv(agent)
+	go readCmd(agent)
 
-	buf := make([]byte, MAX_CLIENT_BUF)
 	for {
 		select {
 		case m := <-agent.outside:
 			dispatchOutsideMsg(agent, m)
-		default:
-			n, err := os.Stdin.Read(buf)
-			if err != nil {
-				fmt.Println("os.Stdin.Read err:", err.Error())
-				return
-			}
-			echo(agent, buf[:n])
+		case cmd := <-agent.inner:
+			parse(agent, cmd)
 		}
 	}
-
-}
-
-func echo(agent *Agent, data []byte) {
-	req := &pb.MQEcho{}
-	req.Data = proto.String(string(data))
-	quest(agent, pb.MQECHO, req)
 }
 
 func echocb(agent *Agent, data proto.Message) {
@@ -77,33 +67,6 @@ func roleload(agent *Agent, data proto.Message) {
 	log(DEBUG, "roleid[%d], name[%s]\n", info.GetId(), info.GetName())
 }
 
-func quest(agent *Agent, t uint32, p proto.Message) {
-	pack, err := proto.Marshal(p)
-	if err != nil {
-		log(ERROR, "Marshal failed: %s\n", err)
-		return
-	}
-	m := &msg{}
-	m.t = t
-	m.session = agent.session + 1
-	m.data = pack
-	sendPack(agent.conn, packMsg(m))
-	agent.session++
-}
-
-func login(agent *Agent, roleid uint32) {
-	req := &pb.MQLogin{}
-	req.Roleid = proto.Uint32(roleid)
-	quest(agent, pb.MQLOGIN, req)
-}
-
-func createRole(agent *Agent, occ uint32) {
-	req := &pb.MQCreateRole{}
-	req.Occ = proto.Uint32(occ)
-	req.Name = proto.String("agan")
-	quest(agent, pb.MQCREATEROLE, req)
-}
-
 func rolelist(agent *Agent, data proto.Message) {
 	log(DEBUG, "rolelist\n")
 	rep := data.(*pb.MRRolelist)
@@ -112,10 +75,7 @@ func rolelist(agent *Agent, data proto.Message) {
 		log(DEBUG, "roleid[%d], name[%s], level[%d], occ[%d]\n", r.GetId(), r.GetName(), r.GetLevel(), r.GetOccupation())
 	}
 	if len(list) == 0 {
-		createRole(agent, 1)
-	} else {
-		// selectRole(agent, list[0])
-		login(agent, list[0].GetId())
+		log(DEBUG, "empty rolelist, please create a new role\n")
 	}
 }
 

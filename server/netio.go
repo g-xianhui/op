@@ -78,7 +78,15 @@ func recv(agent *Agent) {
 			break
 		}
 
+		if pack == nil {
+			log(DEBUG, "uncomplete package\n")
+			continue
+		}
+
 		m := unpackMsg(pack)
+		if m == nil {
+			continue
+		}
 		agent.outside <- m
 	}
 }

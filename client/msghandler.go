@@ -21,7 +21,6 @@ func registerHandler(t uint32, p proto.Message, cb msgCB) {
 }
 
 func dispatchOutsideMsg(agent *Agent, m *msg) {
-	log(DEBUG, "dispatchOutsideMsg\n")
 	h, ok := handlers[m.t]
 	if ok != true {
 		log(ERROR, "msg[%d] handler not found\n", m.t)
