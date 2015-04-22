@@ -63,3 +63,6 @@ func dbCreateRole(occ uint32, name string) (uint32, uint32) {
 	db.QueryRow("SELECT guid FROM role WHERE name = ?", name).Scan(&roleid)
 	return roleid, 0
 }
+
+func (role *Role) save() {
+}

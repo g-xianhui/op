@@ -20,10 +20,34 @@ func (c *AgentCenter) init() {
 	c.name2roleid = make(map[string]uint32)
 }
 
+func (c *AgentCenter) exit() {
+	log(DEBUG, "agentcenter exiting, agents[%d]\n", len(c.agents))
+	done := make(chan struct{})
+	m := &Msg{from: 1, data: &InnerMsg{t: "quit", data: done}}
+	l := 0
+	for _, v := range c.agents {
+		if v.getStatus() == LIVE {
+			l++
+			v.msg <- m
+			close(v.msg)
+		}
+	}
+
+	for i := 0; i < l; i++ {
+		<-done
+	}
+}
+
 func (c *AgentCenter) addByAccount(accountName string, agent *Agent) {
 	c.lock.Lock()
 	defer c.lock.Unlock()
 	c.accounts[accountName] = agent
+}
+
+func (c *AgentCenter) add(roleid uint32, agent *Agent) {
+	c.lock.Lock()
+	defer c.lock.Unlock()
+	c.agents[roleid] = agent
 }
 
 func (c *AgentCenter) find(roleid uint32) *Agent {

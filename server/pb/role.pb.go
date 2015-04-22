@@ -11,6 +11,14 @@ import math "math"
 var _ = proto.Marshal
 var _ = math.Inf
 
+type MQRolelist struct {
+	XXX_unrecognized []byte `json:"-"`
+}
+
+func (m *MQRolelist) Reset()         { *m = MQRolelist{} }
+func (m *MQRolelist) String() string { return proto.CompactTextString(m) }
+func (*MQRolelist) ProtoMessage()    {}
+
 type MRRolelist struct {
 	Rolelist         []*RoleBasic `protobuf:"bytes,1,rep,name=rolelist" json:"rolelist,omitempty"`
 	XXX_unrecognized []byte       `json:"-"`

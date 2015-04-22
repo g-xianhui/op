@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"io"
+	"net"
 )
 
 var _ = io.EOF
@@ -63,12 +64,12 @@ func sendPack(conn io.Writer, pack []byte) error {
 	return nil
 }
 
-func recv(agent *Agent) {
+func recv(agent *Agent, conn net.Conn, dst chan<- *Msg) {
 	last := &cacheBuf{}
 	last.buf = make([]byte, MAX_CLIENT_BUF)
 
 	for {
-		pack, err := readPack(agent.conn, last)
+		pack, err := readPack(conn, last)
 		if err != nil {
 			if err != io.EOF {
 				log(ERROR, "read from client err: %s\n", err)
@@ -87,12 +88,12 @@ func recv(agent *Agent) {
 		if m == nil {
 			continue
 		}
-		agent.outside <- m
+
+		mm := &Msg{data: m}
+		dst <- mm
 	}
 }
 
-func send(agent *Agent, m *msg) {
-	if err := sendPack(agent.conn, packMsg(m)); err != nil {
-		log(ERROR, "proto[%d] send failed: %s", m.t, err)
-	}
+func send(conn net.Conn, m *NetMsg) error {
+	return sendPack(conn, packMsg(m))
 }

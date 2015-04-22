@@ -2,6 +2,7 @@ package pb
 
 const (
 	_ = iota
+	MQROLELIST
 	MQCREATEROLE
 	MQLOGIN
 	MQECHO

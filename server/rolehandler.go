@@ -5,6 +5,10 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
+func hRolelist(agent *Agent, p proto.Message) {
+	replyRolelist(agent)
+}
+
 func hLogin(agent *Agent, p proto.Message) {
 	req := p.(*pb.MQLogin)
 	id := req.GetRoleid()
@@ -17,16 +21,16 @@ func hLogin(agent *Agent, p proto.Message) {
 func hCreateRole(agent *Agent, p proto.Message) {
 	req := p.(*pb.MQCreateRole)
 	rep := &pb.MRCreateRole{}
-	if basic, errno := createRole(agent, req.GetOcc(), req.GetName()); errno != 0 {
-		rep.Errno = proto.Uint32(errno)
-	} else {
-		rep.Errno = proto.Uint32(0)
+	basic, errno := createRole(agent, req.GetOcc(), req.GetName())
+	rep.Errno = proto.Uint32(errno)
+	if basic != nil {
 		rep.Basic = toRoleBasic(basic)
 	}
 	replyMsg(agent, pb.MRCREATEROLE, rep)
 }
 
 func init() {
+	registerHandler(pb.MQROLELIST, &pb.MQRolelist{}, hRolelist)
 	registerHandler(pb.MQLOGIN, &pb.MQLogin{}, hLogin)
 	registerHandler(pb.MQCREATEROLE, &pb.MQCreateRole{}, hCreateRole)
 }

@@ -2,6 +2,9 @@ syntax = "proto2";
 package pb;
 import "datatype.proto";
 
+message MQRolelist {
+}
+
 message MRRolelist {
     repeated RoleBasic rolelist = 1;
 }

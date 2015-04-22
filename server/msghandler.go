@@ -5,13 +5,13 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
-type msg struct {
+type NetMsg struct {
 	t       uint32
 	session uint32
 	data    []byte
 }
 
-func packMsg(m *msg) []byte {
+func packMsg(m *NetMsg) []byte {
 	l := len(m.data) + 8
 	pack := make([]byte, l)
 	binary.BigEndian.PutUint32(pack, m.t)
@@ -20,31 +20,31 @@ func packMsg(m *msg) []byte {
 	return pack
 }
 
-func unpackMsg(pack []byte) *msg {
+func unpackMsg(pack []byte) *NetMsg {
 	if len(pack) < 8 {
 		log(ERROR, "unpackMsg failed: uncomplete package\n")
 		return nil
 	}
-	m := &msg{}
+	m := &NetMsg{}
 	m.t = binary.BigEndian.Uint32(pack[:4])
 	m.session = binary.BigEndian.Uint32(pack[4:8])
 	m.data = pack[8:]
 	return m
 }
 
-type msgCB func(*Agent, proto.Message)
-type msgHandler struct {
+type NetMsgCB func(*Agent, proto.Message)
+type NetMsgHandler struct {
 	p  proto.Message
-	cb msgCB
+	cb NetMsgCB
 }
 
-var handlers = make(map[uint32]msgHandler)
+var handlers = make(map[uint32]NetMsgHandler)
 
-func registerHandler(t uint32, p proto.Message, cb msgCB) {
-	handlers[t] = msgHandler{p, cb}
+func registerHandler(t uint32, p proto.Message, cb NetMsgCB) {
+	handlers[t] = NetMsgHandler{p, cb}
 }
 
-func dispatchOutsideMsg(agent *Agent, m *msg) {
+func dispatchOutsideMsg(agent *Agent, m *NetMsg) {
 	if m.session != agent.session+1 {
 		log(ERROR, "session not equal, cli[%d], svr[%d]\n", m.session, agent.session+1)
 		return
@@ -53,12 +53,12 @@ func dispatchOutsideMsg(agent *Agent, m *msg) {
 
 	h, ok := handlers[m.t]
 	if ok != true {
-		log(ERROR, "msg[%d] handler not found\n", m.t)
+		log(ERROR, "NetMsg[%d] handler not found\n", m.t)
 		return
 	}
 
 	if err := proto.Unmarshal(m.data, h.p); err != nil {
-		log(ERROR, "msg[%d] Unmarshal failed: %s\n", m.t, err)
+		log(ERROR, "NetMsg[%d] Unmarshal failed: %s\n", m.t, err)
 		return
 	}
 
@@ -71,9 +71,8 @@ func replyMsg(agent *Agent, t uint32, p proto.Message) {
 		log(ERROR, "proto[%d] marshal failed: %s\n", t, err)
 		return
 	}
-	m := &msg{t, agent.session, data}
-	send(agent, m)
-}
-
-func dispatchInnerMsg(agent *Agent, msg interface{}) {
+	m := &NetMsg{t, agent.session, data}
+	if err := send(agent.conn, m); err != nil {
+		log(ERROR, "role[%d] proto[%d] send failed: %s", agent.getRoleId(), m.t, err)
+	}
 }

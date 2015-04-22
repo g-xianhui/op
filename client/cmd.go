@@ -42,6 +42,8 @@ func parse(agent *Agent, cmdstr string) {
 	case "echo":
 		assertParam(len(params) > 1)
 		echo(agent, []byte(cmdstr[5:]))
+	case "rolelist":
+		questrolelist(agent)
 	case "login":
 		assertParam(len(params) > 1)
 		roleid, err := strconv.ParseUint(params[1], 10, 32)
@@ -71,6 +73,11 @@ func quest(agent *Agent, t uint32, p proto.Message) {
 	m.data = pack
 	sendPack(agent.conn, packMsg(m))
 	agent.session++
+}
+
+func questrolelist(agent *Agent) {
+	req := &pb.MQRolelist{}
+	quest(agent, pb.MQROLELIST, req)
 }
 
 func login(agent *Agent, roleid uint32) {

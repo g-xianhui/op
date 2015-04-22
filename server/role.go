@@ -40,11 +40,16 @@ func setRole(agent *Agent, i int) {
 }
 
 func login(agent *Agent, id uint32) uint32 {
+	if agent.getStatus() != CONNECTED {
+		return ErrLoginAtWrongStage
+	}
 	index := findRole(agent, id)
 	if index == -1 {
 		return ErrRoleNotFound
 	}
 	setRole(agent, index)
+	agent.setStatus(LIVE)
+	agentcenter.add(id, agent)
 	return 0
 }
 

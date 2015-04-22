@@ -6,4 +6,5 @@ const (
 	ErrRolelistFull
 	ErrNameAlreadyUsed
 	ErrDBOperate
+	ErrLoginAtWrongStage
 )
