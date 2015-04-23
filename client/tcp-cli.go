@@ -102,9 +102,8 @@ func createcb(agent *Agent, data proto.Message) {
 }
 
 func init() {
-	registerHandler(pb.MRECHO, &pb.MREcho{}, echocb)
-	registerHandler(pb.MRROLEBASIC, &pb.MRRoleBasic{}, roleload)
-	registerHandler(pb.MRROLELIST, &pb.MRRolelist{}, rolelist)
-	registerHandler(pb.MRLOGIN, &pb.MRLogin{}, logincb)
-	registerHandler(pb.MRCREATEROLE, &pb.MRCreateRole{}, createcb)
+	registerHandler(pb.MECHO, &pb.MREcho{}, echocb)
+	registerHandler(pb.MROLELIST, &pb.MRRolelist{}, rolelist)
+	registerHandler(pb.MLOGIN, &pb.MRLogin{}, logincb)
+	registerHandler(pb.MCREATEROLE, &pb.MRCreateRole{}, createcb)
 }

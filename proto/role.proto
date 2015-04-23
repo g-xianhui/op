@@ -1,6 +1,12 @@
 syntax = "proto2";
 package pb;
-import "datatype.proto";
+
+message RoleBasic {
+    required uint32 id = 1;
+    required uint32 occupation = 2;
+    required uint32 level = 3;
+    required string name = 4;
+}
 
 message MQRolelist {
 }
@@ -27,14 +33,9 @@ message MRCreateRole {
     optional RoleBasic basic = 2;
 }
 
+message MQLogout {
+}
+
 message MRRoleBasic {
     required RoleBasic basic = 1;
-}
-
-message MRTasklist {
-    repeated Task tasklist = 2;
-}
-
-message MRItemlist {
-    repeated Item itemlist = 3;
 }

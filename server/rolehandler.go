@@ -15,7 +15,7 @@ func hLogin(agent *Agent, p proto.Message) {
 	errno := login(agent, id)
 	rep := &pb.MRLogin{}
 	rep.Errno = proto.Uint32(errno)
-	replyMsg(agent, pb.MRLOGIN, rep)
+	replyMsg(agent, pb.MLOGIN, rep)
 }
 
 func hCreateRole(agent *Agent, p proto.Message) {
@@ -26,11 +26,16 @@ func hCreateRole(agent *Agent, p proto.Message) {
 	if basic != nil {
 		rep.Basic = toRoleBasic(basic)
 	}
-	replyMsg(agent, pb.MRCREATEROLE, rep)
+	replyMsg(agent, pb.MCREATEROLE, rep)
+}
+
+func hLogout(agent *Agent, p proto.Message) {
+	agent.quit(CLIENTQUIT)
 }
 
 func init() {
-	registerHandler(pb.MQROLELIST, &pb.MQRolelist{}, hRolelist)
-	registerHandler(pb.MQLOGIN, &pb.MQLogin{}, hLogin)
-	registerHandler(pb.MQCREATEROLE, &pb.MQCreateRole{}, hCreateRole)
+	registerHandler(pb.MROLELIST, &pb.MQRolelist{}, hRolelist)
+	registerHandler(pb.MLOGIN, &pb.MQLogin{}, hLogin)
+	registerHandler(pb.MCREATEROLE, &pb.MQCreateRole{}, hCreateRole)
+	registerHandler(pb.MLOGOUT, &pb.MQLogout{}, hLogout)
 }

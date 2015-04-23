@@ -11,6 +11,46 @@ import math "math"
 var _ = proto.Marshal
 var _ = math.Inf
 
+type RoleBasic struct {
+	Id               *uint32 `protobuf:"varint,1,req,name=id" json:"id,omitempty"`
+	Occupation       *uint32 `protobuf:"varint,2,req,name=occupation" json:"occupation,omitempty"`
+	Level            *uint32 `protobuf:"varint,3,req,name=level" json:"level,omitempty"`
+	Name             *string `protobuf:"bytes,4,req,name=name" json:"name,omitempty"`
+	XXX_unrecognized []byte  `json:"-"`
+}
+
+func (m *RoleBasic) Reset()         { *m = RoleBasic{} }
+func (m *RoleBasic) String() string { return proto.CompactTextString(m) }
+func (*RoleBasic) ProtoMessage()    {}
+
+func (m *RoleBasic) GetId() uint32 {
+	if m != nil && m.Id != nil {
+		return *m.Id
+	}
+	return 0
+}
+
+func (m *RoleBasic) GetOccupation() uint32 {
+	if m != nil && m.Occupation != nil {
+		return *m.Occupation
+	}
+	return 0
+}
+
+func (m *RoleBasic) GetLevel() uint32 {
+	if m != nil && m.Level != nil {
+		return *m.Level
+	}
+	return 0
+}
+
+func (m *RoleBasic) GetName() string {
+	if m != nil && m.Name != nil {
+		return *m.Name
+	}
+	return ""
+}
+
 type MQRolelist struct {
 	XXX_unrecognized []byte `json:"-"`
 }
@@ -115,6 +155,14 @@ func (m *MRCreateRole) GetBasic() *RoleBasic {
 	return nil
 }
 
+type MQLogout struct {
+	XXX_unrecognized []byte `json:"-"`
+}
+
+func (m *MQLogout) Reset()         { *m = MQLogout{} }
+func (m *MQLogout) String() string { return proto.CompactTextString(m) }
+func (*MQLogout) ProtoMessage()    {}
+
 type MRRoleBasic struct {
 	Basic            *RoleBasic `protobuf:"bytes,1,req,name=basic" json:"basic,omitempty"`
 	XXX_unrecognized []byte     `json:"-"`
@@ -127,38 +175,6 @@ func (*MRRoleBasic) ProtoMessage()    {}
 func (m *MRRoleBasic) GetBasic() *RoleBasic {
 	if m != nil {
 		return m.Basic
-	}
-	return nil
-}
-
-type MRTasklist struct {
-	Tasklist         []*Task `protobuf:"bytes,2,rep,name=tasklist" json:"tasklist,omitempty"`
-	XXX_unrecognized []byte  `json:"-"`
-}
-
-func (m *MRTasklist) Reset()         { *m = MRTasklist{} }
-func (m *MRTasklist) String() string { return proto.CompactTextString(m) }
-func (*MRTasklist) ProtoMessage()    {}
-
-func (m *MRTasklist) GetTasklist() []*Task {
-	if m != nil {
-		return m.Tasklist
-	}
-	return nil
-}
-
-type MRItemlist struct {
-	Itemlist         []*Item `protobuf:"bytes,3,rep,name=itemlist" json:"itemlist,omitempty"`
-	XXX_unrecognized []byte  `json:"-"`
-}
-
-func (m *MRItemlist) Reset()         { *m = MRItemlist{} }
-func (m *MRItemlist) String() string { return proto.CompactTextString(m) }
-func (*MRItemlist) ProtoMessage()    {}
-
-func (m *MRItemlist) GetItemlist() []*Item {
-	if m != nil {
-		return m.Itemlist
 	}
 	return nil
 }

@@ -58,6 +58,8 @@ func parse(agent *Agent, cmdstr string) {
 			log(ERROR, "creat role occ parse failed: %s\n", err)
 		}
 		createRole(agent, uint32(occ), params[2])
+	case "logout":
+		logout(agent)
 	}
 }
 
@@ -77,24 +79,29 @@ func quest(agent *Agent, t uint32, p proto.Message) {
 
 func questrolelist(agent *Agent) {
 	req := &pb.MQRolelist{}
-	quest(agent, pb.MQROLELIST, req)
+	quest(agent, pb.MROLELIST, req)
 }
 
 func login(agent *Agent, roleid uint32) {
 	req := &pb.MQLogin{}
 	req.Roleid = proto.Uint32(roleid)
-	quest(agent, pb.MQLOGIN, req)
+	quest(agent, pb.MLOGIN, req)
 }
 
 func createRole(agent *Agent, occ uint32, name string) {
 	req := &pb.MQCreateRole{}
 	req.Occ = proto.Uint32(occ)
 	req.Name = proto.String(name)
-	quest(agent, pb.MQCREATEROLE, req)
+	quest(agent, pb.MCREATEROLE, req)
 }
 
 func echo(agent *Agent, data []byte) {
 	req := &pb.MQEcho{}
 	req.Data = proto.String(string(data))
-	quest(agent, pb.MQECHO, req)
+	quest(agent, pb.MECHO, req)
+}
+
+func logout(agent *Agent) {
+	req := &pb.MQLogout{}
+	quest(agent, pb.MLOGOUT, req)
 }

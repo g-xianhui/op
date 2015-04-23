@@ -9,9 +9,9 @@ func echo(agent *Agent, p proto.Message) {
 	req := p.(*pb.MQEcho)
 	rep := &pb.MREcho{}
 	rep.Data = proto.String(req.GetData())
-	replyMsg(agent, pb.MRECHO, rep)
+	replyMsg(agent, pb.MECHO, rep)
 }
 
 func init() {
-	registerHandler(pb.MQECHO, &pb.MQEcho{}, echo)
+	registerHandler(pb.MECHO, &pb.MQEcho{}, echo)
 }

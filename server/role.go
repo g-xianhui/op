@@ -19,7 +19,7 @@ func replyRolelist(agent *Agent) {
 	for _, r := range agent.rolelist {
 		rep.Rolelist = append(rep.Rolelist, toRoleBasic(r))
 	}
-	replyMsg(agent, pb.MRROLELIST, rep)
+	replyMsg(agent, pb.MROLELIST, rep)
 }
 
 func findRole(agent *Agent, id uint32) int {
