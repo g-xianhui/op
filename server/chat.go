@@ -1,0 +1,32 @@
+package main
+
+import (
+	"github.com/g-xianhui/op/server/pb"
+	"github.com/golang/protobuf/proto"
+)
+
+const (
+	_ = iota
+	CHAT_PERSONAL
+	CHAT_WORLD
+	CHAT_GUILD
+)
+
+func chat(agent *Agent, p proto.Message) {
+	req := p.(*pb.MQChat)
+	chatType := req.GetChatType()
+	switch chatType {
+	case CHAT_PERSONAL:
+		targetId := req.GetTargetId()
+		target := agentcenter.find(targetId)
+		if target == nil {
+			return
+		}
+		req.From = proto.Uint32(agent.getRoleId())
+		sendInnerMsg(target, "redirect", &IMsgRedirect{pb.MCHAT, req})
+	}
+}
+
+func init() {
+	registerHandler(pb.MCHAT, &pb.MQChat{}, chat)
+}

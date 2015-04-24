@@ -72,8 +72,10 @@ func recv(agent *Agent, conn net.Conn, dst chan<- *Msg) {
 		pack, err := readPack(conn, last)
 		if err != nil {
 			if err != io.EOF {
+				// TODO conn maybe close by server, so err may appear
 				log(ERROR, "read from client err: %s\n", err)
 			} else {
+				// TODO notify agent
 				log(DEBUG, "client end\n")
 			}
 			break

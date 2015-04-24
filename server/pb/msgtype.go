@@ -6,4 +6,5 @@ const (
     MLOGIN
     MLOGOUT
     MECHO
+    MCHAT
 )

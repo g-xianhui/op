@@ -110,9 +110,16 @@ func createcb(agent *Agent, data proto.Message) {
 	}
 }
 
+func chatcb(agent *Agent, data proto.Message) {
+	log(DEBUG, "chatcb\n")
+	rep := data.(*pb.MQChat)
+	log(DEBUG, "message type[%d] from[%d]: %s\n", rep.GetChatType(), rep.GetFrom(), rep.GetContent())
+}
+
 func init() {
 	registerHandler(pb.MECHO, &pb.MREcho{}, echocb)
 	registerHandler(pb.MROLELIST, &pb.MRRolelist{}, rolelist)
 	registerHandler(pb.MLOGIN, &pb.MRLogin{}, logincb)
 	registerHandler(pb.MCREATEROLE, &pb.MRCreateRole{}, createcb)
+	registerHandler(pb.MCHAT, &pb.MQChat{}, chatcb)
 }

@@ -60,6 +60,11 @@ func parse(agent *Agent, cmdstr string) {
 		createRole(agent, uint32(occ), params[2])
 	case "logout":
 		logout(agent)
+	case "chat":
+		assertParam(len(params) > 3)
+		chatType, _ := strconv.ParseUint(params[1], 10, 32)
+		targetId, _ := strconv.ParseUint(params[2], 10, 32)
+		chat(agent, uint32(chatType), uint32(targetId), params[3])
 	}
 }
 
@@ -104,4 +109,12 @@ func echo(agent *Agent, data []byte) {
 func logout(agent *Agent) {
 	req := &pb.MQLogout{}
 	quest(agent, pb.MLOGOUT, req)
+}
+
+func chat(agent *Agent, chatType uint32, targetId uint32, content string) {
+	req := &pb.MQChat{}
+	req.ChatType = proto.Uint32(chatType)
+	req.TargetId = proto.Uint32(targetId)
+	req.Content = proto.String(content)
+	quest(agent, pb.MCHAT, req)
 }

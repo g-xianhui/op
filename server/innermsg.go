@@ -1,6 +1,9 @@
 package main
 
-import "net"
+import (
+	"github.com/golang/protobuf/proto"
+	"net"
+)
 
 type InnerMsg struct {
 	cmd string
@@ -50,5 +53,12 @@ func hAgentRefresh(agent *Agent, ud interface{}) {
 	agent.refresh(d.conn, d.session)
 }
 
+type IMsgRedirect struct {
+	t uint32
+	p proto.Message
+}
+
 func hAgentRedirect(agent *Agent, ud interface{}) {
+	m := ud.(*IMsgRedirect)
+	replyMsg(agent, m.t, m.p)
 }

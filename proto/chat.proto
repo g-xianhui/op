@@ -1,0 +1,9 @@
+syntax = "proto2";
+package pb;
+
+message MQChat {
+    required uint32 chatType = 1;
+    required uint32 targetId = 2;
+    required string content = 3;
+    optional uint32 from = 4;
+}
