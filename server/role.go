@@ -50,6 +50,7 @@ func login(agent *Agent, id uint32) uint32 {
 	setRole(agent, index)
 	agent.setStatus(LIVE)
 	agentcenter.add(id, agent)
+	subscripte(worldChannel, agent.msg)
 	return 0
 }
 

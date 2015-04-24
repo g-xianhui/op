@@ -1,6 +1,7 @@
 package main
 
 import (
+	"github.com/g-xianhui/op/server/pb"
 	"github.com/golang/protobuf/proto"
 	"net"
 )
@@ -32,9 +33,10 @@ func dispatchInnerMsg(agent *Agent, m *InnerMsg) {
 }
 
 var innerMsgHandlers = map[string]InnerMsgCB{
-	"quit":     hAgentQuit,
-	"refresh":  hAgentRefresh,
-	"redirect": hAgentRedirect,
+	"quit":      hAgentQuit,
+	"refresh":   hAgentRefresh,
+	"redirect":  hAgentRedirect,
+	"worldchat": hAgentWorldChat,
 }
 
 func hAgentQuit(agent *Agent, ud interface{}) {
@@ -61,4 +63,9 @@ type IMsgRedirect struct {
 func hAgentRedirect(agent *Agent, ud interface{}) {
 	m := ud.(*IMsgRedirect)
 	replyMsg(agent, m.t, m.p)
+}
+
+func hAgentWorldChat(agent *Agent, ud interface{}) {
+	p := ud.(*pb.MQChat)
+	replyMsg(agent, pb.MCHAT, p)
 }

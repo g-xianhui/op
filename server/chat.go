@@ -12,6 +12,8 @@ const (
 	CHAT_GUILD
 )
 
+var worldChannel *Broadcast
+
 func chat(agent *Agent, p proto.Message) {
 	req := p.(*pb.MQChat)
 	chatType := req.GetChatType()
@@ -24,9 +26,14 @@ func chat(agent *Agent, p proto.Message) {
 		}
 		req.From = proto.Uint32(agent.getRoleId())
 		sendInnerMsg(target, "redirect", &IMsgRedirect{pb.MCHAT, req})
+	case CHAT_WORLD:
+		req.From = proto.Uint32(agent.getRoleId())
+		m := &Msg{1, &InnerMsg{"worldchat", req}}
+		broadcast(worldChannel, m)
 	}
 }
 
 func init() {
+	worldChannel = createBroadcast()
 	registerHandler(pb.MCHAT, &pb.MQChat{}, chat)
 }
