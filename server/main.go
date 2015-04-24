@@ -27,13 +27,17 @@ func log(level int, format string, args ...interface{}) {
 func handleClient(conn net.Conn) {
 	log(DEBUG, "new client[%s:%s]\n", conn.RemoteAddr(), conn.LocalAddr())
 	// TODO auth process
-	accountName := "agan"
+	buf := make([]byte, 32)
+	_, err := conn.Read(buf)
+	if err != nil {
+		return
+	}
+	accountName := string(buf)
+
 	var session uint32 = 0
 	agent := agentcenter.findByAccount(accountName)
 	if agent != nil {
-		mm := &InnerMsg{t: "refresh", data: &IMsgRefresh{conn: conn, session: session}}
-		m := &Msg{from: 1, data: mm}
-		agent.msg <- m
+		sendInnerMsg(agent, "refresh", &IMsgRefresh{conn: conn, session: session})
 	} else {
 		agent, err := createAgent(conn, accountName, session)
 		if err != nil {

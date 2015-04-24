@@ -23,13 +23,11 @@ func (c *AgentCenter) init() {
 func (c *AgentCenter) exit() {
 	log(DEBUG, "agentcenter exiting, agents[%d]\n", len(c.agents))
 	done := make(chan struct{})
-	m := &Msg{from: 1, data: &InnerMsg{t: "quit", data: done}}
 	l := 0
 	for _, v := range c.agents {
 		if v.getStatus() == LIVE {
 			l++
-			v.msg <- m
-			close(v.msg)
+			sendInnerMsg(v, "quit", done)
 		}
 	}
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"github.com/g-xianhui/op/client/pb"
 	"github.com/golang/protobuf/proto"
@@ -19,22 +20,28 @@ func log(level int, format string, args ...interface{}) {
 }
 
 type Agent struct {
-	conn net.Conn
+	conn        net.Conn
+	accountName string
 	// net msg
 	outside chan *msg
 	inner   chan string
 	session uint32
 }
 
-func createAgent(conn net.Conn) *Agent {
+func createAgent(conn net.Conn, name string) *Agent {
 	log(DEBUG, "createAgent\n")
 	agent := &Agent{conn: conn}
 	agent.outside = make(chan *msg)
 	agent.inner = make(chan string)
+	agent.accountName = name
 	return agent
 }
 
 func main() {
+	var accountName string
+	flag.StringVar(&accountName, "uid", "agan", "account id for test")
+	flag.Parse()
+
 	conn, err := net.Dial("tcp", "127.0.0.1:1234")
 	if err != nil {
 		fmt.Println("err:", err.Error())
@@ -42,7 +49,9 @@ func main() {
 	}
 	defer conn.Close()
 
-	agent := createAgent(conn)
+	agent := createAgent(conn, accountName)
+	conn.Write([]byte(accountName))
+
 	go recv(agent)
 	go readCmd(agent)
 
