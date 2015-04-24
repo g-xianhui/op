@@ -11,9 +11,12 @@ type InnerMsg struct {
 	ud  interface{}
 }
 
+func (m *InnerMsg) getMsgType() int {
+	return MSG_INNER
+}
+
 func sendInnerMsg(agent *Agent, cmd string, ud interface{}) {
-	m := &Msg{from: 1}
-	m.data = &InnerMsg{cmd, ud}
+	m := &InnerMsg{cmd, ud}
 	agent.msg <- m
 }
 

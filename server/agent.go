@@ -20,16 +20,21 @@ const (
 	KICK
 )
 
-type Msg struct {
-	from int
-	data interface{}
+const (
+	_ = iota
+	MSG_NET
+	MSG_INNER
+)
+
+type Msg interface {
+	getMsgType() int
 }
 
 type Agent struct {
 	conn     net.Conn
 	session  uint32
 	status   int
-	msg      chan *Msg
+	msg      chan Msg
 	account  *Account
 	rolelist []*RoleBasic
 	// cur role data, use pointer for later release
@@ -85,7 +90,7 @@ func createAgent(conn net.Conn, accountName string, session uint32) (agent *Agen
 	agent.rolelist = loadRolelist(agent.getAccountId())
 	agent.conn = conn
 	agent.session = session
-	agent.msg = make(chan *Msg)
+	agent.msg = make(chan Msg)
 	agent.setStatus(CONNECTED)
 	return
 }
@@ -93,12 +98,12 @@ func createAgent(conn net.Conn, accountName string, session uint32) (agent *Agen
 func (agent *Agent) run() {
 	go recv(agent, agent.conn, agent.msg)
 	for m := range agent.msg {
-		switch m.from {
-		case 0:
-			o := m.data.(*NetMsg)
+		switch m.getMsgType() {
+		case MSG_NET:
+			o := m.(*NetMsg)
 			dispatchOutsideMsg(agent, o)
-		case 1:
-			o := m.data.(*InnerMsg)
+		case MSG_INNER:
+			o := m.(*InnerMsg)
 			dispatchInnerMsg(agent, o)
 		}
 	}

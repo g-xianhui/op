@@ -64,7 +64,7 @@ func sendPack(conn io.Writer, pack []byte) error {
 	return nil
 }
 
-func recv(agent *Agent, conn net.Conn, dst chan<- *Msg) {
+func recv(agent *Agent, conn net.Conn, dst chan<- Msg) {
 	last := &cacheBuf{}
 	last.buf = make([]byte, MAX_CLIENT_BUF)
 
@@ -91,8 +91,7 @@ func recv(agent *Agent, conn net.Conn, dst chan<- *Msg) {
 			continue
 		}
 
-		mm := &Msg{data: m}
-		dst <- mm
+		dst <- m
 	}
 }
 

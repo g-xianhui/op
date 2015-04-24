@@ -11,6 +11,10 @@ type NetMsg struct {
 	data    []byte
 }
 
+func (m *NetMsg) getMsgType() int {
+	return MSG_NET
+}
+
 func packMsg(m *NetMsg) []byte {
 	l := len(m.data) + 8
 	pack := make([]byte, l)

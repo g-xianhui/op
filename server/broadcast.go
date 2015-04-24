@@ -16,10 +16,10 @@ type BCCmd struct {
 type Broadcast struct {
 	c         chan *BCCmd
 	nextid    uint32
-	listeners map[uint32]chan *Msg
+	listeners map[uint32]chan Msg
 }
 
-func (bc *Broadcast) subscripte(listener chan *Msg) uint32 {
+func (bc *Broadcast) subscripte(listener chan Msg) uint32 {
 	id := bc.nextid
 	bc.listeners[id] = listener
 	bc.nextid++
@@ -30,7 +30,7 @@ func (bc *Broadcast) unsubscripte(id uint32) {
 	delete(bc.listeners, id)
 }
 
-func (bc *Broadcast) push(m *Msg) {
+func (bc *Broadcast) push(m Msg) {
 	for _, v := range bc.listeners {
 		v <- m
 	}
@@ -39,19 +39,19 @@ func (bc *Broadcast) push(m *Msg) {
 func createBroadcast() *Broadcast {
 	bc := &Broadcast{}
 	bc.c = make(chan *BCCmd)
-	bc.listeners = make(map[uint32]chan *Msg)
+	bc.listeners = make(map[uint32]chan Msg)
 	go func() {
 		for m := range bc.c {
 			switch m.cmd {
 			case BC_SUBSCRIPTE:
-				listener := m.ud.(chan *Msg)
+				listener := m.ud.(chan Msg)
 				id := bc.subscripte(listener)
 				m.reply <- id
 			case BC_UNSUBSCRIPTE:
 				id := m.ud.(uint32)
 				bc.unsubscripte(id)
 			case BC_PUSH:
-				msg := m.ud.(*Msg)
+				msg := m.ud.(Msg)
 				bc.push(msg)
 			}
 		}
@@ -59,7 +59,7 @@ func createBroadcast() *Broadcast {
 	return bc
 }
 
-func subscripte(bc *Broadcast, listener chan *Msg) uint32 {
+func subscripte(bc *Broadcast, listener chan Msg) uint32 {
 	m := &BCCmd{cmd: BC_SUBSCRIPTE, ud: listener}
 	m.reply = make(chan interface{})
 	bc.c <- m
@@ -72,7 +72,7 @@ func unsubscripte(bc *Broadcast, id uint32) {
 	bc.c <- m
 }
 
-func broadcast(bc *Broadcast, msg *Msg) {
+func broadcast(bc *Broadcast, msg Msg) {
 	m := &BCCmd{cmd: BC_PUSH, ud: msg}
 	bc.c <- m
 }
