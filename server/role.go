@@ -51,6 +51,7 @@ func login(agent *Agent, id uint32) uint32 {
 	agent.setStatus(LIVE)
 	agentcenter.add(id, agent)
 	subscripte(worldChannel, agent.msg)
+	timeSave(id)
 	return 0
 }
 

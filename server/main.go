@@ -2,8 +2,11 @@ package main
 
 import (
 	"database/sql"
+	"flag"
 	"fmt"
+	"github.com/bitly/go-simplejson"
 	_ "github.com/go-sql-driver/mysql"
+	"math/rand"
 	"net"
 	"os"
 	"os/signal"
@@ -13,16 +16,6 @@ import (
 )
 
 var _ = time.Sleep
-
-const (
-	_ = iota
-	DEBUG
-	ERROR
-)
-
-func log(level int, format string, args ...interface{}) {
-	fmt.Printf(format, args...)
-}
 
 func handleClient(conn net.Conn) {
 	log(DEBUG, "new client[%s:%s]\n", conn.RemoteAddr(), conn.LocalAddr())
@@ -74,14 +67,55 @@ func sighanlder() {
 	}
 }
 
+type Env struct {
+	addr                  string
+	dbName, dbUser, dbPwd string
+	saveinterval          int
+}
+
+var env *Env
+
+func setupEnv(configFile string) {
+	file, err := os.Open(configFile)
+	if err != nil {
+		fmt.Printf("open config file failed: %s\n", err)
+		os.Exit(1)
+	}
+
+	js, err := simplejson.NewFromReader(file)
+	if err != nil {
+		fmt.Printf("config file parse failed: %s\n", err)
+		os.Exit(1)
+	}
+
+	env = &Env{}
+	env.addr = js.Get("addr").MustString()
+	env.dbName = js.Get("db").MustString()
+	env.dbUser = js.Get("dbuser").MustString()
+	env.dbPwd = js.Get("dbpwd").MustString()
+	env.saveinterval = js.Get("saveinterval").MustInt()
+
+	logLevel := js.Get("loglevel").MustString()
+	logFile := js.Get("logfile").MustString()
+	logInit(logFile, logLevel)
+}
+
 func main() {
 	runtime.GOMAXPROCS(runtime.NumCPU())
 
+	timenow := time.Now()
+	rand.Seed(timenow.Unix())
+
+	var configFile string
+	flag.StringVar(&configFile, "config", "config.json", "config file")
+	flag.Parse()
+	setupEnv(configFile)
+
 	var err error
-	dbUser, dbPwd, dbName := "root", "", "test"
-	db, err = sql.Open("mysql", dbUser+":"+dbPwd+"@/"+dbName)
+	// dbUser, dbPwd, dbName := "root", "", "test"
+	db, err = sql.Open("mysql", env.dbUser+":"+env.dbPwd+"@/"+env.dbName)
 	if err != nil {
-		fmt.Println("Error open database: ", err)
+		log(ERROR, "Error open database: %s\n", err)
 		os.Exit(1)
 	}
 	defer exit()
@@ -91,13 +125,14 @@ func main() {
 
 	go sighanlder()
 
-	l, err := net.Listen("tcp", "localhost:1234")
+	// l, err := net.Listen("tcp", "localhost:1234")
+	l, err := net.Listen("tcp", env.addr)
 	if err != nil {
-		fmt.Println("Error listening: ", err)
+		log(ERROR, "Error listening: %S\n", err)
 		os.Exit(1)
 	}
 	defer l.Close()
-	fmt.Println("server started!")
+	log(INFO, "server started!\n")
 
 	for {
 		conn, err := l.Accept()

@@ -37,6 +37,7 @@ func dispatchInnerMsg(agent *Agent, m *InnerMsg) {
 
 var innerMsgHandlers = map[string]InnerMsgCB{
 	"quit":      hAgentQuit,
+	"save":      hAgentSave,
 	"refresh":   hAgentRefresh,
 	"redirect":  hAgentRedirect,
 	"worldchat": hAgentWorldChat,
@@ -46,6 +47,10 @@ func hAgentQuit(agent *Agent, ud interface{}) {
 	agent.quit(SERVERCLOSE)
 	done := ud.(chan struct{})
 	done <- struct{}{}
+}
+
+func hAgentSave(agent *Agent, ud interface{}) {
+	agent.save()
 }
 
 type IMsgRefresh struct {

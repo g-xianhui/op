@@ -1,7 +1,9 @@
 package main
 
 import (
+	"math/rand"
 	"net"
+	"time"
 )
 
 const (
@@ -75,10 +77,14 @@ func (agent *Agent) quit(reason int) {
 		return
 	}
 
+	agent.setStatus(DEAD)
+}
+
+func (agent *Agent) save() {
+	log(DEBUG, "save[%d]\n", agent.getRoleId())
 	if agent.Role != nil {
 		agent.Role.save()
 	}
-	agent.setStatus(DEAD)
 }
 
 func createAgent(conn net.Conn, accountName string, session uint32) (agent *Agent, err error) {
@@ -93,6 +99,20 @@ func createAgent(conn net.Conn, accountName string, session uint32) (agent *Agen
 	agent.msg = make(chan Msg)
 	agent.setStatus(CONNECTED)
 	return
+}
+
+func timeSave(id uint32) *time.Ticker {
+	// save every 5-10 minutes
+	n := rand.Intn(5) + 5
+	ticker := time.NewTicker(time.Minute * time.Duration(n))
+	go func() {
+		for _ = range ticker.C {
+			if agent := agentcenter.find(id); agent != nil {
+				sendInnerMsg(agent, "save", nil)
+			}
+		}
+	}()
+	return ticker
 }
 
 func (agent *Agent) run() {
