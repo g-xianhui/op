@@ -21,11 +21,11 @@ func handleClient(conn net.Conn) {
 	log(DEBUG, "new client[%s:%s]\n", conn.RemoteAddr(), conn.LocalAddr())
 	// TODO auth process
 	buf := make([]byte, 32)
-	_, err := conn.Read(buf)
+	n, err := conn.Read(buf)
 	if err != nil {
 		return
 	}
-	accountName := string(buf)
+	accountName := string(buf[:n])
 
 	var session uint32 = 0
 	agent := agentcenter.findByAccount(accountName)

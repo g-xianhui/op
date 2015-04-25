@@ -1,0 +1,12 @@
+2015/04/25 12:58:59 server started!
+2015/04/25 12:59:17 new client[127.0.0.1:43123:127.0.0.1:1234]
+2015/04/25 12:59:17 createAgent[agan]
+2015/04/25 12:59:17 create new account: agan
+2015/04/25 12:59:20 uncomplete package
+2015/04/25 13:00:08 client end
+2015/04/25 13:03:00 new client[127.0.0.1:43125:127.0.0.1:1234]
+2015/04/25 13:03:03 uncomplete package
+2015/04/25 13:03:31 agent[1] quit, reason[2]
+2015/04/25 13:03:32 client end
+2015/04/25 13:04:08 exiting
+2015/04/25 13:04:08 agentcenter exiting, agents[1]

@@ -26,7 +26,7 @@ func logInit(file string, level string) {
 	if err != nil {
 		oslog.Fatal(err)
 	}
-	logger = oslog.New(logfile, "", oslog.Ldate|oslog.Ltime|oslog.Llongfile)
+	logger = oslog.New(logfile, "", oslog.Ldate|oslog.Ltime)
 	logLevel = levels[level]
 }
 
