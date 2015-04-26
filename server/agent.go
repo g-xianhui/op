@@ -9,8 +9,9 @@ import (
 const (
 	_ = iota
 	CONNECTED
-	LIVE
-	DEAD
+	LOGINED
+	LOGOUT
+	DISCONNECTED
 )
 
 const (
@@ -32,14 +33,22 @@ type Msg interface {
 	getMsgType() int
 }
 
+type channelPair struct {
+	c  *Broadcast
+	id uint32
+}
+
 type Agent struct {
-	conn     net.Conn
-	session  uint32
-	status   int
-	msg      chan Msg
-	account  *Account
-	rolelist []*RoleBasic
-	// cur role data, use pointer for later release
+	conn              net.Conn
+	session           uint32
+	status            int
+	init              bool
+	msg               chan Msg
+	broadcastChannels []*channelPair
+	saveTicker        *time.Ticker
+	account           *Account
+	rolelist          []*RoleBasic
+	// cur role data
 	*Role
 }
 
@@ -59,9 +68,25 @@ func (agent *Agent) setStatus(s int) {
 	agent.status = s
 }
 
+func (agent *Agent) subscripte(bc *Broadcast) {
+	id := subscripte(worldChannel, agent.msg)
+	pair := &channelPair{bc, id}
+	agent.broadcastChannels = append(agent.broadcastChannels, pair)
+}
+
+func (agent *Agent) login(id uint32) {
+	if !agent.init {
+		agent.broadcastChannels = []*channelPair{}
+		agent.subscripte(worldChannel)
+		agent.saveTicker = timeSave(id)
+		agent.init = true
+	}
+	agent.setStatus(LOGINED)
+}
+
 func (agent *Agent) refresh(conn net.Conn, session uint32) {
 	// break the old 'recv' goroutine
-	if agent.getStatus() != DEAD {
+	if agent.getStatus() == LOGINED {
 		agent.conn.Close()
 	}
 	agent.conn = conn
@@ -71,18 +96,15 @@ func (agent *Agent) refresh(conn net.Conn, session uint32) {
 	go recv(agent, conn, agent.msg)
 }
 
-func (agent *Agent) quit(reason int) {
-	log(DEBUG, "agent[%d] quit, reason[%d]\n", agent.getRoleId(), reason)
-	if agent.getStatus() == DEAD {
-		return
+func (agent *Agent) disconnect() {
+	if agent.getStatus() == LOGINED {
+		agent.setStatus(DISCONNECTED)
 	}
-
-	agent.setStatus(DEAD)
 }
 
 func (agent *Agent) save() {
-	log(DEBUG, "save[%d]\n", agent.getRoleId())
 	if agent.Role != nil {
+		log(DEBUG, "save[%d]\n", agent.getRoleId())
 		agent.Role.save()
 	}
 }
@@ -101,10 +123,21 @@ func createAgent(conn net.Conn, accountName string, session uint32) (agent *Agen
 	return
 }
 
+// release agent when memory reach threshole
+func (agent *Agent) clear() {
+	for _, c := range agent.broadcastChannels {
+		unsubscripte(c.c, c.id)
+	}
+	agent.broadcastChannels = nil
+	agent.saveTicker.Stop()
+	agent.save()
+	agent.Role = nil
+}
+
 func timeSave(id uint32) *time.Ticker {
 	// save every 5-10 minutes
 	n := rand.Intn(5) + 5
-	ticker := time.NewTicker(time.Minute * time.Duration(n))
+	ticker := time.NewTicker(time.Second * time.Duration(n))
 	go func() {
 		for _ = range ticker.C {
 			if agent := agentcenter.find(id); agent != nil {

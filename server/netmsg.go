@@ -49,7 +49,7 @@ func registerHandler(t uint32, p proto.Message, cb NetMsgCB) {
 }
 
 func dispatchOutsideMsg(agent *Agent, m *NetMsg) {
-	if agent.getStatus() == DEAD {
+	if agent.getStatus() == LOGOUT {
 		return
 	}
 
@@ -74,6 +74,9 @@ func dispatchOutsideMsg(agent *Agent, m *NetMsg) {
 }
 
 func replyMsg(agent *Agent, t uint32, p proto.Message) {
+	if agent.getStatus() == DISCONNECTED {
+		return
+	}
 	data, err := proto.Marshal(p)
 	if err != nil {
 		log(ERROR, "proto[%d] marshal failed: %s\n", t, err)

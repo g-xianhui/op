@@ -25,10 +25,8 @@ func (c *AgentCenter) exit() {
 	done := make(chan struct{})
 	l := 0
 	for _, v := range c.agents {
-		if v.getStatus() == LIVE {
-			l++
-			sendInnerMsg(v, "quit", done)
-		}
+		l++
+		sendInnerMsg(v, "quit", done)
 	}
 
 	for i := 0; i < l; i++ {

@@ -30,7 +30,7 @@ func handleClient(conn net.Conn) {
 	var session uint32 = 0
 	agent := agentcenter.findByAccount(accountName)
 	if agent != nil {
-		sendInnerMsg(agent, "refresh", &IMsgRefresh{conn: conn, session: session})
+		sendInnerMsg(agent, "refresh", &RefreshData{conn: conn, session: session})
 	} else {
 		agent, err := createAgent(conn, accountName, session)
 		if err != nil {

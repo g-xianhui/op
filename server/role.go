@@ -48,10 +48,8 @@ func login(agent *Agent, id uint32) uint32 {
 		return ErrRoleNotFound
 	}
 	setRole(agent, index)
-	agent.setStatus(LIVE)
+	agent.login(id)
 	agentcenter.add(id, agent)
-	subscripte(worldChannel, agent.msg)
-	timeSave(id)
 	return 0
 }
 

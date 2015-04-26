@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/g-xianhui/op/server/pb"
 	"github.com/golang/protobuf/proto"
 	"net"
 )
@@ -36,44 +35,44 @@ func dispatchInnerMsg(agent *Agent, m *InnerMsg) {
 }
 
 var innerMsgHandlers = map[string]InnerMsgCB{
-	"quit":      hAgentQuit,
-	"save":      hAgentSave,
-	"refresh":   hAgentRefresh,
-	"redirect":  hAgentRedirect,
-	"worldchat": hAgentWorldChat,
+	"quit":       hQuit,
+	"disconnect": hDisconnect,
+	"save":       hSave,
+	"refresh":    hRefresh,
+	"redirect":   hRedirect,
 }
 
-func hAgentQuit(agent *Agent, ud interface{}) {
-	agent.quit(SERVERCLOSE)
+func hQuit(agent *Agent, ud interface{}) {
+	agent.save()
 	done := ud.(chan struct{})
 	done <- struct{}{}
 }
 
-func hAgentSave(agent *Agent, ud interface{}) {
+func hDisconnect(agent *Agent, ud interface{}) {
+	agent.disconnect()
+}
+
+func hSave(agent *Agent, ud interface{}) {
 	agent.save()
 }
 
-type IMsgRefresh struct {
+type RefreshData struct {
 	conn    net.Conn
 	session uint32
 }
 
-func hAgentRefresh(agent *Agent, ud interface{}) {
-	d := ud.(*IMsgRefresh)
+func hRefresh(agent *Agent, ud interface{}) {
+	d := ud.(*RefreshData)
 	agent.refresh(d.conn, d.session)
 }
 
-type IMsgRedirect struct {
+// NetMsg inside, send between agents and services
+type NetMsgInside struct {
 	t uint32
 	p proto.Message
 }
 
-func hAgentRedirect(agent *Agent, ud interface{}) {
-	m := ud.(*IMsgRedirect)
+func hRedirect(agent *Agent, ud interface{}) {
+	m := ud.(*NetMsgInside)
 	replyMsg(agent, m.t, m.p)
-}
-
-func hAgentWorldChat(agent *Agent, ud interface{}) {
-	p := ud.(*pb.MQChat)
-	replyMsg(agent, pb.MCHAT, p)
 }

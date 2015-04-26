@@ -30,7 +30,7 @@ func hCreateRole(agent *Agent, p proto.Message) {
 }
 
 func hLogout(agent *Agent, p proto.Message) {
-	agent.quit(CLIENTQUIT)
+	agent.setStatus(LOGOUT)
 }
 
 func init() {

@@ -76,6 +76,7 @@ func recv(agent *Agent, conn net.Conn, dst chan<- Msg) {
 				log(ERROR, "read from client err: %s\n", err)
 			} else {
 				// TODO notify agent
+				sendInnerMsg(agent, "disconnect", nil)
 				log(DEBUG, "client end\n")
 			}
 			break
