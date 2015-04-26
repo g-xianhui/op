@@ -28,7 +28,7 @@ func chat(agent *Agent, p proto.Message) {
 		sendInnerMsg(target, "redirect", &NetMsgInside{pb.MCHAT, req})
 	case CHAT_WORLD:
 		req.From = proto.Uint32(agent.getRoleId())
-		m := &InnerMsg{"redirect", &NetMsgInside{pb.MCHAT, req}}
+		m := packInnerMsg("redirect", &NetMsgInside{pb.MCHAT, req})
 		broadcast(worldChannel, m)
 	}
 }

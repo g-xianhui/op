@@ -83,7 +83,6 @@ func recv(agent *Agent, conn net.Conn, dst chan<- Msg) {
 		}
 
 		if pack == nil {
-			log(DEBUG, "uncomplete package\n")
 			continue
 		}
 
