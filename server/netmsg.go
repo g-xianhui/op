@@ -26,7 +26,6 @@ func packMsg(m *NetMsg) []byte {
 
 func unpackMsg(pack []byte) *NetMsg {
 	if len(pack) < 8 {
-		log(ERROR, "unpackMsg failed: uncomplete package\n")
 		return nil
 	}
 	m := &NetMsg{}

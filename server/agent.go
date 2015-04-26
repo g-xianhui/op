@@ -135,9 +135,9 @@ func (agent *Agent) clear() {
 }
 
 func timeSave(id uint32) *time.Ticker {
-	// save every 5-10 minutes
-	n := rand.Intn(5) + 5
-	ticker := time.NewTicker(time.Second * time.Duration(n))
+	// save every saveinterval - saveinterval + 5 minutes
+	n := rand.Intn(env.saveinterval) + 5
+	ticker := time.NewTicker(time.Minute * time.Duration(n))
 	go func() {
 		for _ = range ticker.C {
 			if agent := agentcenter.find(id); agent != nil {

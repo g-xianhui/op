@@ -112,20 +112,17 @@ func main() {
 	setupEnv(configFile)
 
 	var err error
-	// dbUser, dbPwd, dbName := "root", "", "test"
 	db, err = sql.Open("mysql", env.dbUser+":"+env.dbPwd+"@/"+env.dbName)
 	if err != nil {
 		log(ERROR, "Error open database: %s\n", err)
 		os.Exit(1)
 	}
-	defer exit()
 
 	agentcenter = &AgentCenter{}
 	agentcenter.init()
 
 	go sighanlder()
 
-	// l, err := net.Listen("tcp", "localhost:1234")
 	l, err := net.Listen("tcp", env.addr)
 	if err != nil {
 		log(ERROR, "Error listening: %S\n", err)
