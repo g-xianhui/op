@@ -1,6 +1,6 @@
 {
     "loglevel" : "DEBUG",
-    "logfile" : "/root/programming/go/src/github.com/g-xianhui/op/server/log.txt",
+    "logfile" : "log.txt",
     "addr" : "localhost:1234",
     "db" : "test",
     "dbuser" : "root",
