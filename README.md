@@ -50,7 +50,7 @@ sendInnerMsg(bc, "push", msg)
 
 3.与客户端的通信
 
-每个客户端将保持一条tcp长连接与服务端进行通信，数据包格式为`|len (2 bytes)| + |data|`，其中len为2字节的包总长度，使用大端字节序，data为自定义的协议数据，框架默认使用protobuf作为data的编码协议。
+每个客户端将保持一条tcp长连接与服务端进行通信，数据包格式为`|len (2 bytes)| + |data|`，其中len为2字节的data的长度，使用大端字节序，data为自定义的协议数据，框架默认使用protobuf作为data的编码协议。
 
 4.代码规范
 

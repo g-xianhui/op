@@ -11,53 +11,52 @@ var _ = io.EOF
 
 const MAX_CLIENT_BUF = 1 << 16
 
-type cacheBuf struct {
-	buf    []byte
-	curPos int
+func Readn(conn io.Reader, count int) ([]byte, int, error) {
+	data := make([]byte, count)
+	n := 0
+	for {
+		i, err := conn.Read(data[n:])
+		if i > 0 {
+			n += i
+		}
+
+		if n == count || err != nil {
+			return data, n, err
+		}
+	}
 }
 
-// read a package from conn, package is format like: | length(2) | data(lenght-2) |
-func readPack(conn io.Reader, last *cacheBuf) (pack []byte, err error) {
-	if last.curPos >= MAX_CLIENT_BUF {
-		err = errors.New("client buf overflow")
-		return
+// read a package from conn, package is format like: | length(2) | data(lenght) |
+func readPack(conn io.Reader) ([]byte, error) {
+	lenbuf, n, err := Readn(conn, 2)
+	if n < 2 {
+		if err == io.EOF && n == 0 {
+			return nil, err
+		} else {
+			log(ERROR, "Readn: %s\n", err)
+			return nil, errors.New("uncomplete head")
+		}
 	}
+	textLen := int(binary.BigEndian.Uint16(lenbuf))
 
-	n, err := conn.Read(last.buf[last.curPos:])
-	if err != nil {
-		return
+	data, n, err := Readn(conn, textLen)
+	if n < textLen {
+		log(ERROR, "Readn: %s\n", err)
+		return nil, errors.New("uncomplete content")
 	}
-
-	last.curPos += n
-	if last.curPos < 2 {
-		return
-	}
-
-	packLen := int(binary.BigEndian.Uint16(last.buf[:2]))
-	if last.curPos < packLen {
-		return
-	}
-
-	pack = make([]byte, packLen-2)
-	copy(pack, last.buf[2:packLen])
-
-	copy(last.buf, last.buf[packLen:last.curPos])
-	last.curPos -= packLen
-
-	return
+	return data, nil
 }
 
 // send a package to conn
-func sendPack(conn io.Writer, pack []byte) error {
-	l := len(pack)
-	if l > MAX_CLIENT_BUF {
+func writePack(conn io.Writer, data []byte) error {
+	l := len(data)
+	if l >= MAX_CLIENT_BUF {
 		return errors.New("msg is too big")
 	}
-	lbuf := make([]byte, 2)
-	binary.BigEndian.PutUint16(lbuf, uint16(l+2))
-	if _, err := conn.Write(lbuf); err != nil {
-		return err
-	}
+
+	pack := make([]byte, l+2)
+	binary.BigEndian.PutUint16(pack[:2], uint16(l))
+	copy(pack[2:], data)
 	if _, err := conn.Write(pack); err != nil {
 		return err
 	}
@@ -65,11 +64,17 @@ func sendPack(conn io.Writer, pack []byte) error {
 }
 
 func recv(agent *Agent, conn net.Conn, dst chan<- Msg) {
-	last := &cacheBuf{}
-	last.buf = make([]byte, MAX_CLIENT_BUF)
-
 	for {
-		pack, err := readPack(conn, last)
+		pack, err := readPack(conn)
+		if pack != nil {
+			m := unpackMsg(pack)
+			if m == nil {
+				continue
+			}
+
+			dst <- m
+		}
+
 		if err != nil {
 			if err != io.EOF {
 				// TODO conn maybe close by server, so err may appear
@@ -82,19 +87,9 @@ func recv(agent *Agent, conn net.Conn, dst chan<- Msg) {
 			break
 		}
 
-		if pack == nil {
-			continue
-		}
-
-		m := unpackMsg(pack)
-		if m == nil {
-			continue
-		}
-
-		dst <- m
 	}
 }
 
 func send(conn net.Conn, m *NetMsg) error {
-	return sendPack(conn, packMsg(m))
+	return writePack(conn, packMsg(m))
 }

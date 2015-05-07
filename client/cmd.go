@@ -78,7 +78,7 @@ func quest(agent *Agent, t uint32, p proto.Message) {
 	m.t = t
 	m.session = agent.session + 1
 	m.data = pack
-	sendPack(agent.conn, packMsg(m))
+	writePack(agent.conn, packMsg(m))
 	agent.session++
 }
 
