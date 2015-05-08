@@ -10,8 +10,9 @@ var _ = io.EOF
 
 const MAX_CLIENT_BUF = 1 << 16
 
-func Readn(conn io.Reader, count int) (data []byte, n int) {
-	data = make([]byte, count)
+func Readn(conn io.Reader, count int) ([]byte, int, error) {
+	data := make([]byte, count)
+	n := 0
 	for {
 		i, err := conn.Read(data[n:])
 		if i > 0 {
@@ -19,28 +20,33 @@ func Readn(conn io.Reader, count int) (data []byte, n int) {
 		}
 
 		if n == count || err != nil {
-			return
+			return data, n, err
 		}
 	}
-	return
 }
 
 // read a package from conn, package is format like: | length(2) | data(lenght) |
 func readPack(conn io.Reader) ([]byte, error) {
-	lenbuf, n := Readn(conn, 2)
+	lenbuf, n, err := Readn(conn, 2)
 	if n < 2 {
-		return nil, errors.New("uncomplete head")
+		if err == io.EOF && n == 0 {
+			return nil, err
+		} else {
+			log(ERROR, "Readn: %s\n", err)
+			return nil, errors.New("uncomplete head")
+		}
 	}
 	textLen := int(binary.BigEndian.Uint16(lenbuf))
 
-	data, n := Readn(conn, textLen)
+	data, n, err := Readn(conn, textLen)
 	if n < textLen {
+		log(ERROR, "Readn: %s\n", err)
 		return nil, errors.New("uncomplete content")
 	}
 	return data, nil
 }
 
-// send a package to conn
+// write a package to conn
 func writePack(conn io.Writer, data []byte) error {
 	l := len(data)
 	if l >= MAX_CLIENT_BUF {
@@ -89,10 +95,8 @@ func recv(agent *Agent) {
 
 		if err != nil {
 			if err != io.EOF {
-				// TODO conn maybe close by server, so err may appear
 				log(ERROR, "read from server err: %s\n", err)
 			} else {
-				// TODO notify agent
 				log(DEBUG, "server closed\n")
 			}
 			break
