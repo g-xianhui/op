@@ -53,7 +53,7 @@ func dispatchOutsideMsg(agent *Agent, m *NetMsg) {
 	}
 
 	if m.session != agent.session+1 {
-		log(ERROR, "session not equal, cli[%d], svr[%d]\n", m.session, agent.session+1)
+		log(ERROR, "NetMsg[%d] session not equal, cli[%d], svr[%d]\n", m.t, m.session, agent.session+1)
 		return
 	}
 	agent.session++
