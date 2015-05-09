@@ -39,7 +39,7 @@ func setRole(agent *Agent, i int) {
 	agent.Role.load()
 }
 
-func login(agent *Agent, id uint32) uint32 {
+func roleLogin(agent *Agent, id uint32) uint32 {
 	if agent.getStatus() != CONNECTED {
 		return ErrLoginAtWrongStage
 	}

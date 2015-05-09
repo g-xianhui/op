@@ -11,6 +11,7 @@ import (
 	"os"
 	"os/signal"
 	"runtime"
+	"strings"
 	"syscall"
 	"time"
 )
@@ -18,28 +19,26 @@ import (
 var _ = time.Sleep
 
 func handleClient(conn net.Conn) {
-	log(DEBUG, "new client[%s:%s]\n", conn.RemoteAddr(), conn.LocalAddr())
-	// TODO auth process
-	buf := make([]byte, 32)
-	n, err := conn.Read(buf)
+	log(DEBUG, "client from[%s:%s]\n", conn.RemoteAddr(), conn.LocalAddr())
+	cmd, err := readPack(conn)
 	if err != nil {
 		return
 	}
-	accountName := string(buf[:n])
-
-	var session uint32 = 0
-	agent := agentcenter.findByAccount(accountName)
-	if agent != nil {
-		sendInnerMsg(agent, "refresh", &RefreshData{conn: conn, session: session})
-	} else {
-		agent, err := createAgent(conn, accountName, session)
-		if err != nil {
-			log(ERROR, "createAgent[%s] failed: %s", accountName, err)
+	cmdstr := string(cmd)
+	if cmdstr == "login" {
+		if err := login(conn); err != nil {
 			conn.Close()
-			return
+			log(ERROR, "login failed: %s\n", err)
 		}
-		agentcenter.addByAccount(accountName, agent)
-		agent.run()
+	} else {
+		s := strings.Split(cmdstr, ":")
+		if len(s) != 2 {
+			conn.Close()
+		}
+		if err := reconnect(conn, s[1]); err != nil {
+			conn.Close()
+			log(ERROR, "reconnect failed: %s\n", err)
+		}
 	}
 }
 

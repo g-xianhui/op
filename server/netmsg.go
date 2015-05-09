@@ -48,7 +48,7 @@ func registerHandler(t uint32, p proto.Message, cb NetMsgCB) {
 }
 
 func dispatchOutsideMsg(agent *Agent, m *NetMsg) {
-	if agent.getStatus() == LOGOUT {
+	if agent.getStatus() == LOGOUT || agent.getStatus() == DISCONNECTED {
 		return
 	}
 

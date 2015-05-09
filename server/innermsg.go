@@ -78,6 +78,7 @@ func hSave(agent *Agent, ud interface{}) interface{} {
 type RefreshData struct {
 	conn    net.Conn
 	session uint32
+	secret  []byte
 }
 
 func hRefresh(agent *Agent, ud interface{}) interface{} {

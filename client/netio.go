@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/binary"
 	"errors"
+	"github.com/g-xianhui/crypt"
 	"io"
 )
 
@@ -108,4 +109,25 @@ func send(agent *Agent, m *msg) {
 	if err := writePack(agent.conn, packMsg(m)); err != nil {
 		log(ERROR, "proto[%d] send failed: %s", err)
 	}
+}
+
+func readEncrypt(conn io.Reader, secret []byte) ([]byte, error) {
+	ciphertext, err := readPack(conn)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := crypt.AesDecrypt(ciphertext, secret)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
+func writeEncrypt(conn io.Writer, data []byte, secret []byte) error {
+	ciphertext, err := crypt.AesEncrypt(data, secret)
+	if err != nil {
+		return err
+	}
+	return writePack(conn, ciphertext)
 }

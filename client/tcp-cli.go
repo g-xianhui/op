@@ -26,14 +26,17 @@ type Agent struct {
 	outside chan *msg
 	inner   chan string
 	session uint32
+	secret  []byte
 }
 
-func createAgent(conn net.Conn, name string) *Agent {
+func createAgent(conn net.Conn, name string, session uint32, secret []byte) *Agent {
 	log(DEBUG, "createAgent\n")
 	agent := &Agent{conn: conn}
 	agent.outside = make(chan *msg)
 	agent.inner = make(chan string)
 	agent.accountName = name
+	agent.session = session
+	agent.secret = secret
 	return agent
 }
 
@@ -47,11 +50,14 @@ func main() {
 		fmt.Println("err:", err.Error())
 		os.Exit(1)
 	}
-	defer conn.Close()
 
-	agent := createAgent(conn, accountName)
-	conn.Write([]byte(accountName))
+	session, secret, err := login(conn, accountName)
+	if err != nil {
+		log(ERROR, "login failed: %s\n", err)
+		os.Exit(1)
+	}
 
+	agent := createAgent(conn, accountName, session, secret)
 	go recv(agent)
 	go readCmd(agent)
 

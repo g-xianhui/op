@@ -50,7 +50,7 @@ func parse(agent *Agent, cmdstr string) {
 		if err != nil {
 			log(ERROR, "login roleid parse failed: %s\n", err)
 		}
-		login(agent, uint32(roleid))
+		roleLogin(agent, uint32(roleid))
 	case "createrole":
 		assertParam(len(params) > 2)
 		occ, err := strconv.ParseUint(params[1], 10, 32)
@@ -65,6 +65,16 @@ func parse(agent *Agent, cmdstr string) {
 		chatType, _ := strconv.ParseUint(params[1], 10, 32)
 		targetId, _ := strconv.ParseUint(params[2], 10, 32)
 		chat(agent, uint32(chatType), uint32(targetId), params[3])
+	case "reconnect":
+		agent.conn.Close()
+		session, conn, err := reconnect(agent.accountName, agent.secret)
+		if err != nil {
+			log(ERROR, "reconnect failed: %s\n", err)
+			os.Exit(1)
+		}
+		agent.session = session
+		agent.conn = conn
+		go recv(agent)
 	}
 }
 
@@ -87,7 +97,7 @@ func questrolelist(agent *Agent) {
 	quest(agent, pb.MROLELIST, req)
 }
 
-func login(agent *Agent, roleid uint32) {
+func roleLogin(agent *Agent, roleid uint32) {
 	req := &pb.MQLogin{}
 	req.Roleid = proto.Uint32(roleid)
 	quest(agent, pb.MLOGIN, req)

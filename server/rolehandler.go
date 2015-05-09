@@ -12,7 +12,7 @@ func hRolelist(agent *Agent, p proto.Message) {
 func hLogin(agent *Agent, p proto.Message) {
 	req := p.(*pb.MQLogin)
 	id := req.GetRoleid()
-	errno := login(agent, id)
+	errno := roleLogin(agent, id)
 	rep := &pb.MRLogin{}
 	rep.Errno = proto.Uint32(errno)
 	replyMsg(agent, pb.MLOGIN, rep)

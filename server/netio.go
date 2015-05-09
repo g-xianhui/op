@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/binary"
 	"errors"
+	"github.com/g-xianhui/crypt"
 	"io"
 	"net"
 )
@@ -47,6 +48,19 @@ func readPack(conn io.Reader) ([]byte, error) {
 	return data, nil
 }
 
+func readEncrypt(conn io.Reader, secret []byte) ([]byte, error) {
+	ciphertext, err := readPack(conn)
+	if err != nil {
+		return nil, err
+	}
+
+	data, err := crypt.AesDecrypt(ciphertext, secret)
+	if err != nil {
+		return nil, err
+	}
+	return data, nil
+}
+
 // send a package to conn
 func writePack(conn io.Writer, data []byte) error {
 	l := len(data)
@@ -63,6 +77,14 @@ func writePack(conn io.Writer, data []byte) error {
 	return nil
 }
 
+func writeEncrypt(conn io.Writer, data []byte, secret []byte) error {
+	ciphertext, err := crypt.AesEncrypt(data, secret)
+	if err != nil {
+		return err
+	}
+	return writePack(conn, ciphertext)
+}
+
 func recv(agent *Agent, conn net.Conn, dst chan<- Msg) {
 	for {
 		pack, err := readPack(conn)
@@ -77,10 +99,9 @@ func recv(agent *Agent, conn net.Conn, dst chan<- Msg) {
 
 		if err != nil {
 			if err != io.EOF {
-				// TODO conn maybe close by server, so err may appear
+				// FIXME conn maybe close by server, so err may appear
 				log(ERROR, "read from client err: %s\n", err)
 			} else {
-				// TODO notify agent
 				sendInnerMsg(agent, "disconnect", nil)
 				log(DEBUG, "client end\n")
 			}

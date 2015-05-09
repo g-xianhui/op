@@ -43,6 +43,7 @@ type Agent struct {
 	session           uint32
 	status            int
 	init              bool
+	secret            []byte
 	msg               chan Msg
 	broadcastChannels []*channelPair
 	saveTicker        *time.Ticker
@@ -86,7 +87,7 @@ func (agent *Agent) login(id uint32) {
 
 func (agent *Agent) refresh(conn net.Conn, session uint32) {
 	// break the old 'recv' goroutine
-	if agent.getStatus() == LOGINED {
+	if agent.getStatus() != DISCONNECTED {
 		agent.conn.Close()
 	}
 	agent.conn = conn
@@ -97,9 +98,7 @@ func (agent *Agent) refresh(conn net.Conn, session uint32) {
 }
 
 func (agent *Agent) disconnect() {
-	if agent.getStatus() == LOGINED {
-		agent.setStatus(DISCONNECTED)
-	}
+	agent.setStatus(DISCONNECTED)
 }
 
 func (agent *Agent) save() {
@@ -109,7 +108,7 @@ func (agent *Agent) save() {
 	}
 }
 
-func createAgent(conn net.Conn, accountName string, session uint32) (agent *Agent, err error) {
+func createAgent(conn net.Conn, accountName string, session uint32, secret []byte) (agent *Agent, err error) {
 	log(DEBUG, "createAgent[%s]\n", accountName)
 	agent = &Agent{}
 	if agent.account, err = loadAccount(accountName); err != nil {
@@ -118,6 +117,7 @@ func createAgent(conn net.Conn, accountName string, session uint32) (agent *Agen
 	agent.rolelist = loadRolelist(agent.getAccountId())
 	agent.conn = conn
 	agent.session = session
+	agent.secret = secret
 	agent.msg = make(chan Msg)
 	agent.setStatus(CONNECTED)
 	return
