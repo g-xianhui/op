@@ -85,32 +85,38 @@ func writeEncrypt(conn io.Writer, data []byte, secret []byte) error {
 	return writePack(conn, ciphertext)
 }
 
-func recv(agent *Agent, conn net.Conn, dst chan<- Msg) {
+func recv(conn net.Conn, secret []byte, dst chan<- Msg, quit <-chan struct{}, connecttime int64) {
+DONE:
 	for {
-		pack, err := readPack(conn)
-		if pack != nil {
-			m := unpackMsg(pack)
-			if m == nil {
-				continue
+		select {
+		case <-quit:
+			break DONE
+		default:
+			pack, err := readEncrypt(conn, secret)
+			if pack != nil {
+				m := unpackMsg(pack)
+				if m == nil {
+					continue
+				}
+				// maybe session unequal
+				dst <- m
 			}
 
-			dst <- m
-		}
-
-		if err != nil {
-			if err != io.EOF {
-				// FIXME conn maybe close by server, so err may appear
-				log(ERROR, "read from client err: %s\n", err)
-			} else {
-				sendInnerMsg(agent, "disconnect", nil)
-				log(DEBUG, "client end\n")
+			if err != nil {
+				if err != io.EOF {
+					log(ERROR, "read from client: %s\n", err)
+				} else {
+					m := &InnerMsg{cmd: "disconnect", ud: connecttime}
+					dst <- m
+					log(DEBUG, "client end\n")
+				}
+				break DONE
 			}
-			break
 		}
-
 	}
+	conn.Close()
 }
 
-func send(conn net.Conn, m *NetMsg) error {
-	return writePack(conn, packMsg(m))
+func send(conn net.Conn, m *NetMsg, secret []byte) error {
+	return writeEncrypt(conn, packMsg(m), secret)
 }

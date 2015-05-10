@@ -82,7 +82,7 @@ func replyMsg(agent *Agent, t uint32, p proto.Message) {
 		return
 	}
 	m := &NetMsg{t, agent.session, data}
-	if err := send(agent.conn, m); err != nil {
+	if err := send(agent.conn, m, agent.secret); err != nil {
 		log(ERROR, "role[%d] proto[%d] send failed: %s", agent.getRoleId(), m.t, err)
 	}
 }

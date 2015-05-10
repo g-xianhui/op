@@ -66,7 +66,10 @@ func hQuit(agent *Agent, ud interface{}) interface{} {
 }
 
 func hDisconnect(agent *Agent, ud interface{}) interface{} {
-	agent.disconnect()
+	connecttime := ud.(int64)
+	if connecttime == agent.connecttime {
+		agent.disconnect()
+	}
 	return nil
 }
 
@@ -83,7 +86,7 @@ type RefreshData struct {
 
 func hRefresh(agent *Agent, ud interface{}) interface{} {
 	d := ud.(*RefreshData)
-	agent.refresh(d.conn, d.session)
+	agent.refresh(d.conn, d.session, d.secret)
 	return nil
 }
 

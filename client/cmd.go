@@ -88,7 +88,7 @@ func quest(agent *Agent, t uint32, p proto.Message) {
 	m.t = t
 	m.session = agent.session + 1
 	m.data = pack
-	writePack(agent.conn, packMsg(m))
+	writeEncrypt(agent.conn, packMsg(m), agent.secret)
 	agent.session++
 }
 

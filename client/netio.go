@@ -85,7 +85,7 @@ func unpackMsg(pack []byte) *msg {
 
 func recv(agent *Agent) {
 	for {
-		pack, err := readPack(agent.conn)
+		pack, err := readEncrypt(agent.conn, agent.secret)
 		if pack != nil {
 			m := unpackMsg(pack)
 			if m == nil {
@@ -102,12 +102,6 @@ func recv(agent *Agent) {
 			}
 			break
 		}
-	}
-}
-
-func send(agent *Agent, m *msg) {
-	if err := writePack(agent.conn, packMsg(m)); err != nil {
-		log(ERROR, "proto[%d] send failed: %s", err)
 	}
 }
 

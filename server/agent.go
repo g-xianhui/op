@@ -39,11 +39,15 @@ type channelPair struct {
 }
 
 type Agent struct {
-	conn              net.Conn
-	session           uint32
-	status            int
-	init              bool
-	secret            []byte
+	conn    net.Conn
+	session uint32
+	status  int
+	init    bool
+	secret  []byte
+	// use for reconnect
+	connecttime int64
+	// use for bread recv loop
+	netquitchan       chan struct{}
 	msg               chan Msg
 	broadcastChannels []*channelPair
 	saveTicker        *time.Ticker
@@ -85,16 +89,24 @@ func (agent *Agent) login(id uint32) {
 	agent.setStatus(LOGINED)
 }
 
-func (agent *Agent) refresh(conn net.Conn, session uint32) {
+func (agent *Agent) refresh(conn net.Conn, session uint32, secret []byte) {
 	// break the old 'recv' goroutine
 	if agent.getStatus() != DISCONNECTED {
-		agent.conn.Close()
+		agent.netquitchan <- struct{}{}
 	}
+
+	// login on another device
+	if secret != nil {
+		agent.secret = secret
+	}
+
 	agent.conn = conn
 	agent.session = session
 	agent.setStatus(CONNECTED)
+	agent.netquitchan = make(chan struct{}, 1)
+	agent.connecttime = time.Now().Unix()
 	// read net msg from the new connect
-	go recv(agent, conn, agent.msg)
+	go recv(agent.conn, agent.secret, agent.msg, agent.netquitchan, agent.connecttime)
 }
 
 func (agent *Agent) disconnect() {
@@ -149,7 +161,9 @@ func timeSave(id uint32) *time.Ticker {
 }
 
 func (agent *Agent) run() {
-	go recv(agent, agent.conn, agent.msg)
+	agent.netquitchan = make(chan struct{}, 1)
+	agent.connecttime = time.Now().Unix()
+	go recv(agent.conn, agent.secret, agent.msg, agent.netquitchan, agent.connecttime)
 	for m := range agent.msg {
 		switch m.getMsgType() {
 		case MSG_NET:
