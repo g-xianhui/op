@@ -2,3 +2,4 @@ server/server
 client/client
 log.txt
 err.txt
+*.profile

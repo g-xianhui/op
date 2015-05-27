@@ -10,6 +10,7 @@ import (
 	"net"
 	"os"
 	"os/signal"
+	"path/filepath"
 	"runtime"
 	"strings"
 	"syscall"
@@ -50,6 +51,12 @@ func exit() {
 	log(DEBUG, "exiting\n")
 	agentcenter.exit()
 	db.Close()
+	if env.cpuProfile > 0 {
+		stopCPUProfile()
+	}
+	if env.memProfile > 0 {
+		writeMemProfile(filepath.Join(env.logDir, "mem.profile"))
+	}
 	os.Exit(0)
 }
 
@@ -67,9 +74,11 @@ func sighanlder() {
 }
 
 type Env struct {
-	addr                  string
-	dbName, dbUser, dbPwd string
-	saveinterval          int
+	addr                   string
+	dbName, dbUser, dbPwd  string
+	saveinterval           int
+	logDir                 string
+	cpuProfile, memProfile int
 }
 
 var env *Env
@@ -92,11 +101,19 @@ func setupEnv(configFile string) {
 	env.dbName = js.Get("db").MustString()
 	env.dbUser = js.Get("dbuser").MustString()
 	env.dbPwd = js.Get("dbpwd").MustString()
-	env.saveinterval = js.Get("saveinterval").MustInt()
+	env.saveinterval = js.Get("saveinterval").MustInt(5)
+
+	env.logDir = js.Get("logDir").MustString("")
 
 	logLevel := js.Get("loglevel").MustString()
 	logFile := js.Get("logfile").MustString()
-	logInit(logFile, logLevel)
+	logInit(filepath.Join(env.logDir, logFile), logLevel)
+
+	env.cpuProfile = js.Get("cpuProfile").MustInt(0)
+	if env.cpuProfile > 0 {
+		startCPUProfile(filepath.Join(env.logDir, "cpu.profile"))
+	}
+	env.memProfile = js.Get("memProfile").MustInt(0)
 }
 
 func main() {

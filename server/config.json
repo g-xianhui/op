@@ -1,9 +1,12 @@
 {
+    "logDir" : "",
     "loglevel" : "DEBUG",
     "logfile" : "log.txt",
     "addr" : "127.0.0.1:1234",
     "db" : "test",
     "dbuser" : "root",
     "dbpwd" : "",
-    "saveinterval" : 5
+    "saveinterval" : 5,
+    "cpuProfile" : 1,
+    "memProfile" : 1
 }
