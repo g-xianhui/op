@@ -8,5 +8,6 @@
     "dbpwd" : "",
     "saveinterval" : 5,
     "cpuProfile" : 1,
-    "memProfile" : 1
+    "memProfile" : 1,
+    "goroutineProfile" : 8080
 }

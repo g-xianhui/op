@@ -79,6 +79,7 @@ type Env struct {
 	saveinterval           int
 	logDir                 string
 	cpuProfile, memProfile int
+	goroutineProfile       int
 }
 
 var env *Env
@@ -114,6 +115,10 @@ func setupEnv(configFile string) {
 		startCPUProfile(filepath.Join(env.logDir, "cpu.profile"))
 	}
 	env.memProfile = js.Get("memProfile").MustInt(0)
+	env.goroutineProfile = js.Get("goroutineProfile").MustInt(0)
+	if env.goroutineProfile > 0 {
+		startGoroutineProfile(env.goroutineProfile)
+	}
 }
 
 func main() {

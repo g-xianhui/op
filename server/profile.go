@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"io"
+	"net/http"
 	"os"
 	"runtime/pprof"
 )
@@ -37,4 +39,17 @@ func writeMemProfile(fname string) error {
 		return err
 	}
 	return pprof.WriteHeapProfile(f)
+}
+
+func httpHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "text/plain")
+	p := pprof.Lookup("goroutine")
+	p.WriteTo(w, 1)
+}
+
+func startGoroutineProfile(port int) {
+	go func() {
+		http.HandleFunc("/", httpHandler)
+		http.ListenAndServe(fmt.Sprintf(":%d", port), nil)
+	}()
 }
