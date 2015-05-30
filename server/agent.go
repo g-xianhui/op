@@ -1,7 +1,6 @@
 package main
 
 import (
-	"math/rand"
 	"net"
 	"time"
 )
@@ -50,7 +49,7 @@ type Agent struct {
 	netquitchan       chan struct{}
 	msg               chan Msg
 	broadcastChannels []*channelPair
-	saveTicker        *time.Ticker
+	savetimer         uint
 	account           *Account
 	rolelist          []*RoleBasic
 	// cur role data
@@ -83,7 +82,11 @@ func (agent *Agent) login(id uint32) {
 	if !agent.init {
 		agent.broadcastChannels = []*channelPair{}
 		agent.subscripte(worldChannel)
-		agent.saveTicker = timeSave(id)
+		if agent.savetimer == 0 {
+			agent.savetimer = timemgr.AddLoop(time.Now(), time.Second*time.Duration(env.saveinterval), func() {
+				sendInnerMsg(agent, "save", nil)
+			})
+		}
 		agent.init = true
 	}
 	agent.setStatus(LOGINED)
@@ -141,23 +144,10 @@ func (agent *Agent) clear() {
 		unsubscripte(c.c, c.id)
 	}
 	agent.broadcastChannels = nil
-	agent.saveTicker.Stop()
+	timemgr.DelLoop(agent.savetimer)
+	agent.savetimer = 0
 	agent.save()
 	agent.Role = nil
-}
-
-func timeSave(id uint32) *time.Ticker {
-	// save every saveinterval - saveinterval + 5 minutes
-	n := rand.Intn(env.saveinterval) + 5
-	ticker := time.NewTicker(time.Minute * time.Duration(n))
-	go func() {
-		for _ = range ticker.C {
-			if agent := agentcenter.find(id); agent != nil {
-				sendInnerMsg(agent, "save", nil)
-			}
-		}
-	}()
-	return ticker
 }
 
 func (agent *Agent) run() {

@@ -46,6 +46,7 @@ func handleClient(conn net.Conn) {
 // database handler
 var db *sql.DB
 var agentcenter *AgentCenter
+var timemgr *TimeMgr
 
 func exit() {
 	log(DEBUG, "exiting\n")
@@ -141,6 +142,9 @@ func main() {
 
 	agentcenter = &AgentCenter{}
 	agentcenter.init()
+
+	timemgr = &TimeMgr{}
+	go timemgr.Run()
 
 	go sighanlder()
 
